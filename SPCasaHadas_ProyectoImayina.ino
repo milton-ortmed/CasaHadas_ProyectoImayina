@@ -4,28 +4,29 @@
  * @microcontroller ESP32-S3 Super Mini
  * 
  * Descripción:
- * Este programa controla la iluminación, apertura de puerta, expulsión asíncrona de purpurina
+ * Este programa controla la iluminación, expulsión asíncrona de purpurina
  * y reproducción de audio temática para las Casas de Hadas mecánicas.
  */
 
 #include <Arduino.h>
 #include <esp_task_wdt.h>
+#include <Botones.hpp>
 
-#include "Config.h"
-#include "ILightingController.h"
-#include "FastLEDController.h"
-#include "ServoManager.h"
-#include "BlowerControl.h"
-#include "AudioPlayer.h"
+#include "src/Config.h"
+#include "src/ILightingController.h"
+#include "src/FastLEDController.h"
+#include "src/ServoManager.h"
+#include "src/BlowerControl.h"
+#include "src/SPControladorDFPlayerMini.hpp"
 
 // ==========================================
 // ESTADOS DE LA MÁQUINA DE ESTADOS FINITA (FSM)
 // ==========================================
 enum SystemState {
     STATE_IDLE,          // Reposó: Iluminación tenue ("hada dentro"), espera de botón
-    STATE_ACTIVATED,     // Activación: Inicia audio, abre puerta y prepara purpurina
+    STATE_ACTIVATED,     // Activación: Inicia audio y prepara purpurina
     STATE_SHOW_RUNNING,  // Espectáculo: Mantiene show, ejecuta secuencia de purpurina y monitorea pin BUSY
-    STATE_CLOSING        // Cierre: Cierra puerta, limpia estados y regresa a IDLE
+    STATE_CLOSING        // Cierre: Limpia estados y regresa a IDLE
 };
 
 // Sub-estados de la secuencia asíncrona de purpurina (previene atascos)
@@ -48,22 +49,18 @@ ILightingController* lighting = new FastLEDController();
 
 ServoManager servos;
 BlowerControl blower;
-AudioPlayer audioPlayer;
-
-// Variables de control de tiempos (millis)
-uint32_t lastDebounceTime = 0;
-int lastButtonState = HIGH;
-int buttonState = HIGH;
+ControladorDFRobotDFPlayerMini audioPlayer;
+Controlador Ctrl;
 
 uint32_t purpurinaStageStartTime = 0;
-uint32_t showStartTime = 0;
+uint32_t showRunningStartTime = 0;
 bool purpurinaCompleted = false;
 
 // ==========================================
 // PROTOTIPOS DE FUNCIONES
 // ==========================================
 void setupWatchdog();
-void readButton();
+void activateShow();
 void updateFSM();
 void processPurpurinaSequence();
 
@@ -76,14 +73,15 @@ void setup() {
     Serial.println("  INICIALIZANDO CASAS DE HADAS - MUNDO IMAYINA");
     Serial.println("=============================================");
 
-    // Inicializar configuración del botón
-    pinMode(PIN_BUTTON, INPUT_PULLUP);
-
     // Inicializar componentes
     lighting->begin();
     servos.begin();
     blower.begin();
-    audioPlayer.begin();
+    audioPlayer.Inicializar();
+    audioPlayer.EstablecerVolumen(5);
+
+    Ctrl.RegistrarAccion(PIN_BUTTON, EventoBoton::Pulsar, activateShow);
+    Ctrl.InicializarCtrl();
 
     // Configurar Watchdog Timer de seguridad
     setupWatchdog();
@@ -98,8 +96,8 @@ void loop() {
     // Alimenta el Watchdog Timer para evitar reinicios por falso colgado
     esp_task_wdt_reset();
 
-    // 1. Lectura del botón con filtrado antirrebote no bloqueante
-    readButton();
+    // 1. Actualización del controlador de botones con antirrebote
+    Ctrl.ActualizarCtrl(DEBOUNCE_DELAY_MS);
 
     // 2. Despachador de la Máquina de Estados Finita (FSM)
     updateFSM();
@@ -123,28 +121,15 @@ void setupWatchdog() {
 }
 
 // ==========================================
-// LECTURA DE BOTÓN CON ANTIRREBOTE (DEBOUNCE)
+// EVENTO DE BOTÓN
 // ==========================================
-void readButton() {
-    int reading = digitalRead(PIN_BUTTON);
-
-    if (reading != lastButtonState) {
-        lastDebounceTime = millis();
+void activateShow() {
+    if (currentState != STATE_IDLE) {
+        return;
     }
 
-    if ((millis() - lastDebounceTime) > DEBOUNCE_DELAY_MS) {
-        if (reading != buttonState) {
-            buttonState = reading;
-
-            // Disparo de botón al presionar (Transición HIGH a LOW)
-            if (buttonState == LOW && currentState == STATE_IDLE) {
-                Serial.println("[EVENTO] Botón Antivandálico Presionado -> Activando Show");
-                currentState = STATE_ACTIVATED;
-            }
-        }
-    }
-
-    lastButtonState = reading;
+    Serial.println("[EVENTO] Botón Antivandálico Presionado -> Activando Show");
+    currentState = STATE_ACTIVATED;
 }
 
 // ==========================================
@@ -154,26 +139,24 @@ void updateFSM() {
     switch (currentState) {
 
         case STATE_IDLE:
-            // Iluminación tenue parpadeante ("Hada viviendo dentro")
-            lighting->updateIdleEffect();
+            // Iluminación detenida
+            FastLED.clear(); // Limpiar los LEDs
+            FastLED.show();
             break;
 
         case STATE_ACTIVATED:
             Serial.println("[FSM] Estado: ACTIVATED -> Iniciando Audio y Mecanismo");
             
             // 1. Iniciar reproducción de audio temático en DFPlayer Mini
-            audioPlayer.playTrack(1);
+            audioPlayer.ReproducirPista(1);
 
             // 2. Cambiar brillo de luces e iniciar efecto mágico
             lighting->setBrightness(BRIGHTNESS_SHOW);
 
-            // 3. Abrir la puerta principal
-            servos.openDoor();
-
-            // 4. Iniciar la secuencia de purpurina
+            // 3. Iniciar la secuencia de purpurina
             purpurinaStage = PURPURINA_PRE_BLOWER;
             purpurinaStageStartTime = millis();
-            showStartTime = millis();
+            showRunningStartTime = millis();
             purpurinaCompleted = false;
             blower.turnOn(); // Paso 1: Pre-soplado del blower
 
@@ -181,47 +164,32 @@ void updateFSM() {
             break;
 
         case STATE_SHOW_RUNNING:
-            // 1. Actualizar la animación brillante de LEDs
-            lighting->updateShowEffect();
+            // 1. Actualizar la secuencia ámbar mientras el audio esté activo
+            lighting->updateAmberSequenceEffect();
 
             // 2. Procesar secuencia asíncrona de purpurina
             if (!purpurinaCompleted) {
                 processPurpurinaSequence();
             }
 
-            // 3. Monitorear finalización del show mediante el pin BUSY del DFPlayer Mini
-            // NOTA: pin BUSY = LOW mientras suena audio, HIGH al terminar.
-            {
-                bool isAudioPlaying = audioPlayer.isPlaying();
-                
-                // Timeout de seguridad por si el audio falla (ej. 60 segundos máx)
-                bool audioTimeout = (millis() - showStartTime > 60000);
-
-                if (purpurinaCompleted && (!isAudioPlaying || audioTimeout)) {
-                    if (audioTimeout) {
-                        Serial.println("[ALERTA] Timeout de seguridad de audio alcanzado");
-                    } else {
-                        Serial.println("[FSM] Audio finalizado detectado en pin BUSY");
-                    }
-                    currentState = STATE_CLOSING;
-                }
+            // 3. Finalizar el show después del tiempo configurado
+            if (millis() - showRunningStartTime >= SHOW_RUNNING_DURATION_MS) {
+                Serial.println("[FSM] Duración de SHOW_RUNNING completada");
+                currentState = STATE_CLOSING;
             }
             break;
 
         case STATE_CLOSING:
-            Serial.println("[FSM] Estado: CLOSING -> Cerrando Puerta y Limpiando");
+            Serial.println("[FSM] Estado: CLOSING -> Limpiando");
 
-            // 1. Regresar la puerta a la posición cerrada
-            servos.closeDoor();
-
-            // 2. Asegurar que la guillotina esté cerrada y el blower apagado
+            // Asegurar que la guillotina esté cerrada y el blower apagado
             servos.closeGuillotine();
             blower.turnOff();
 
-            // 3. Restablecer brillo de luces para reposo
+            // Restablecer brillo de luces para reposo
             lighting->setBrightness(BRIGHTNESS_IDLE);
 
-            // 4. Regresar a reposo
+            // Regresar a reposo
             currentState = STATE_IDLE;
             Serial.println("[FSM] Retorno a STATE_IDLE completado");
             break;

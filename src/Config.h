@@ -12,8 +12,7 @@
 // ==========================================
 // MAPEO DE PINES (GPIO - ESP32-S3 Super Mini)
 // ==========================================
-#define PIN_SERVO_DOOR        1  // GPIO 1: Señal PWM -> Servo 1 (Puerta MG90S)
-#define PIN_SERVO_GUILLOTINE   2  // GPIO 2: Señal PWM -> Servo 2 (Guillotina MG90S)
+#define PIN_SERVO_GUILLOTINE   2  // GPIO 2: Señal PWM -> Servo de la guillotina MG90S
 #define PIN_BLOWER_MOSFET     3  // GPIO 3: Salida Digital -> Control MOSFET (Blower 5V)
 #define PIN_LED_DATA          4  // GPIO 4: Datos DIN -> Tira WS2812B (FastLED)
 #define PIN_DFPLAYER_TX       5  // GPIO 5: ESP32 TX -> RX DFPlayer Mini (vía res 1kΩ)
@@ -24,11 +23,8 @@
 // ==========================================
 // PARÁMETROS DE SERVO (ÁNGULOS MG90S)
 // ==========================================
-#define DOOR_CLOSED_ANGLE        0   // Grados con la puerta totalmente cerrada
-#define DOOR_OPEN_ANGLE         90   // Grados con la puerta totalmente abierta
-
 #define GUILLOTINE_CLOSED_ANGLE  0   // Grados con la guillotina de purpurina sellada
-#define GUILLOTINE_OPEN_ANGLE   65   // Grados para apertura de liberación de purpurina
+#define GUILLOTINE_OPEN_ANGLE   90   // Grados para apertura de liberación de purpurina
 
 // Pulso estándar MG90S (microsegundos)
 #define SERVO_MIN_PULSE        500
@@ -44,14 +40,16 @@
 // ==========================================
 // ILUMINACIÓN (WS2812B - FastLED)
 // ==========================================
-#define NUM_LEDS             10  // 10x Módulo LED WS2812B NeoPixel
+#define NUM_LEDS             8  // 8x Módulo LED WS2812B NeoPixel
 #define BRIGHTNESS_IDLE      60  // Brillo tenue para efecto reposo (0-255)
 #define BRIGHTNESS_SHOW     255  // Brillo máximo durante el espectáculo (0-255)
+#define AMBER_SEQUENCE_INTERVAL_MS 50 // Tiempo entre LEDs de la secuencia ámbar
+#define SHOW_RUNNING_DURATION_MS 7000 // Duración del estado SHOW_RUNNING
 
 // ==========================================
 // TIEMPOS DE DEBOUNCE Y SEGURIDAD
 // ==========================================
-#define DEBOUNCE_DELAY_MS        50  // Filtro de antirrebote para el botón (50ms)
+#define DEBOUNCE_DELAY_MS        100  // Filtro de antirrebote para el botón (100ms)
 #define WDT_TIMEOUT_SECONDS       5  // Watchdog Timer de seguridad (5 segundos)
 
 #endif // CONFIG_H

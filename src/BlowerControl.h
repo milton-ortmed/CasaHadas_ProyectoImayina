@@ -12,9 +12,10 @@
 class BlowerControl {
 private:
     bool running;
+    const uint8_t maxPulse;
 
 public:
-    BlowerControl() : running(false) {}
+    BlowerControl() : running(false), maxPulse(60) {}
 
     /**
      * @brief Configura el pin del MOSFET como salida y asegura que inicie apagado.
@@ -25,10 +26,10 @@ public:
     }
 
     /**
-     * @brief Enciende el Mini Blower al 100% de potencia.
+      * @brief Enciende el Mini Blower con un ciclo de trabajo PWM de 60/255.
      */
     void turnOn() {
-        digitalWrite(PIN_BLOWER_MOSFET, HIGH);
+          analogWrite(PIN_BLOWER_MOSFET, maxPulse);
         running = true;
     }
 
@@ -36,7 +37,7 @@ public:
      * @brief Apaga completamente el Mini Blower.
      */
     void turnOff() {
-        digitalWrite(PIN_BLOWER_MOSFET, LOW);
+        analogWrite(PIN_BLOWER_MOSFET, 0);
         running = false;
     }
 

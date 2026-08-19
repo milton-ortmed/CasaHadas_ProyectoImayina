@@ -14,13 +14,15 @@ class FastLEDController : public ILightingController {
 private:
     CRGB leds[NUM_LEDS];
     uint32_t lastUpdateMs;
+    uint16_t amberSequenceIndex;
 
 public:
-    FastLEDController() : lastUpdateMs(0) {}
+    FastLEDController()
+        : lastUpdateMs(0), amberSequenceIndex(0) {}
 
     void begin() override {
         // FastLED inicialización para WS2812B en PIN_LED_DATA (GPIO 4)
-        FastLED.addLeds<WS2812B, PIN_LED_DATA, GRB>(leds, NUM_LEDS);
+        FastLED.addLeds<WS2812B, PIN_LED_DATA, RGB>(leds, NUM_LEDS);
         FastLED.setBrightness(BRIGHTNESS_IDLE);
         FastLED.clear();
         FastLED.show();
@@ -74,6 +76,22 @@ public:
         }
 
         FastLED.show();
+    }
+
+    /**
+     * @brief Recorre la tira encendiendo un LED ámbar cálido cada vez.
+     */
+    void updateAmberSequenceEffect() override {
+        uint32_t now = millis();
+        if (now - lastUpdateMs < AMBER_SEQUENCE_INTERVAL_MS) return;
+        lastUpdateMs = now;
+
+        FastLED.setBrightness(BRIGHTNESS_SHOW);
+        fill_solid(leds, NUM_LEDS, CRGB::Black);
+        leds[amberSequenceIndex] = CHSV(32, 220, 255);
+        FastLED.show();
+
+        amberSequenceIndex = (amberSequenceIndex + 1) % NUM_LEDS;
     }
 };
 

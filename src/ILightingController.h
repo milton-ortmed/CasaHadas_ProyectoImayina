@@ -31,6 +31,11 @@ public:
     virtual void updateShowEffect() = 0;
 
     /**
+     * @brief Actualiza la secuencia de recorrido ámbar durante el espectáculo.
+     */
+    virtual void updateAmberSequenceEffect() = 0;
+
+    /**
      * @brief Define el nivel de brillo general de los LEDs.
      * @param brightness Valor entre 0 y 255.
      */
