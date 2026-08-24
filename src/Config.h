@@ -12,12 +12,12 @@
 // ==========================================
 // MAPEO DE PINES (GPIO - ESP32-S3 Super Mini)
 // ==========================================
-#define PIN_SERVO_GUILLOTINE   2  // GPIO 2: Señal PWM -> Servo de la guillotina MG90S
-#define PIN_BLOWER_MOSFET     3  // GPIO 3: Salida Digital -> Control MOSFET (Blower 5V)
-#define PIN_LED_DATA          4  // GPIO 4: Datos DIN -> Tira WS2812B (FastLED)
-#define PIN_DFPLAYER_TX       5  // GPIO 5: ESP32 TX -> RX DFPlayer Mini (vía res 1kΩ)
-#define PIN_DFPLAYER_RX       6  // GPIO 6: ESP32 RX -> TX DFPlayer Mini
-#define PIN_BUTTON            7  // GPIO 7: Entrada Digital -> Botón IP67 (INPUT_PULLUP)
+#define PIN_SERVO_GUILLOTINE   5  // GPIO 5: Señal PWM -> Servo de la guillotina MG90S
+#define PIN_BLOWER_MOSFET     2  // GPIO 2: Salida Digital -> Control MOSFET (Blower 5V)
+#define PIN_LED_DATA          10  // GPIO 10: Datos DIN -> Tira WS2812B (FastLED)
+#define PIN_DFPLAYER_TX       6  // GPIO 6: ESP32 TX -> RX DFPlayer Mini (vía res 1kΩ)
+#define PIN_DFPLAYER_RX       7  // GPIO 7: ESP32 RX -> TX DFPlayer Mini
+#define PIN_BUTTON            9  // GPIO 9: Entrada Digital -> Botón IP67 (INPUT_PULLUP)
 #define PIN_DFPLAYER_BUSY     8  // GPIO 8: Entrada Digital -> Pin BUSY DFPlayer (LOW = reproduciendo)
 
 // ==========================================

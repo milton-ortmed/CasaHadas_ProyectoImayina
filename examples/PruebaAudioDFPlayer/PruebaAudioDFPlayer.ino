@@ -1,20 +1,42 @@
 #include <Arduino.h>
+#include "../../src/Config.h"
+#include "../../src/TarjetaAudio.cpp"
 #include "../../src/SPControladorDFPlayerMini.hpp"
 #include "../../src/SPControladorDFPlayerMini.cpp"
 #include <Botones.hpp>
-#include "../../src/Config.h"
 
 const int TIEMPO_ESPERA = 100;
 #define MIN_TRACK 1
 
-ControladorDFRobotDFPlayerMini reproductor; // Para ESP32-S3 Super Mini: RX 6, TX 5
+ControladorDFRobotDFPlayerMini reproductor(PIN_DFPLAYER_RX, PIN_DFPLAYER_TX, PIN_DFPLAYER_BUSY);
 Controlador Ctrl;
+bool teclado = true;
 
 void initDFPlayer() {
     Serial.print("Inicializando DFPlayer Mini...");
     reproductor.Inicializar();
     Serial.println(" OK.");
     reproductor.EstablecerVolumen(5);
+}
+
+void playTrack() {
+    Serial.print("Reproduciendo pista: ");
+    Serial.println(MIN_TRACK);
+    reproductor.ReproducirPista(MIN_TRACK);
+}
+
+void readKeyboard() {
+    if (!teclado) {
+        return;
+    }
+
+    while (Serial.available() > 0) {
+        char command = Serial.read();
+        if (command == 'r' || command == 'R') {
+            Serial.println("Tecla R recibida");
+            playTrack();
+        }
+    }
 }
 
 void setup() {
@@ -29,11 +51,7 @@ void setup() {
 
     initDFPlayer();
 
-    Ctrl.RegistrarAccion(PIN_BUTTON, EventoBoton::Pulsar, []() {
-        Serial.print("Reproduciendo pista: ");
-        Serial.println(MIN_TRACK);
-        reproductor.ReproducirPista(MIN_TRACK);
-    });
+    Ctrl.RegistrarAccion(PIN_BUTTON, EventoBoton::Pulsar, playTrack);
     Ctrl.InicializarCtrl();
 
     Serial.println("Sistema listo.");
@@ -42,4 +60,5 @@ void setup() {
 
 void loop() {
     Ctrl.ActualizarCtrl(TIEMPO_ESPERA);
+    readKeyboard();
 }

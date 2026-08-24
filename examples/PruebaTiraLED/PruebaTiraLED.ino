@@ -23,10 +23,12 @@ FastLEDController lighting;
 Controlador Ctrl;
 TestMode currentMode = MODE_IDLE;
 uint32_t modeStartedAt = 0;
+bool teclado = true;
 
 const uint32_t SHOW_DURATION_MS = 7000;
 
 void startShow();
+void readKeyboard();
 
 void setup() {
     Serial.begin(115200);
@@ -53,6 +55,7 @@ void setup() {
 
 void loop() {
     Ctrl.ActualizarCtrl(DEBOUNCE_DELAY_MS);
+    readKeyboard();
 
     if (currentMode == MODE_SHOW && millis() - modeStartedAt >= SHOW_DURATION_MS) {
         currentMode = MODE_IDLE;
@@ -79,4 +82,18 @@ void startShow() {
     modeStartedAt = millis();
     lighting.setBrightness(BRIGHTNESS_SHOW);
     Serial.println("Boton presionado: iniciando SHOW durante 7 segundos");
+}
+
+void readKeyboard() {
+    if (!teclado) {
+        return;
+    }
+
+    while (Serial.available() > 0) {
+        char command = Serial.read();
+        if (command == 'r' || command == 'R') {
+            Serial.println("Tecla R recibida");
+            startShow();
+        }
+    }
 }

@@ -1,15 +1,13 @@
 #include <Botones.hpp>
 #include "../../src/ServoManager.h"
+#include "../../src/Config.h"
 
-#define Tiempo_Espera 100
-
-#define BUTTON_PIN 7 // Botón conectado entre GPIO 7 y GND
-
-const unsigned long guillotineOpenDuration = 500;
+const unsigned long guillotineOpenDuration = GUILLOTINE_OPEN_TIME_MS;
 
 ServoManager servoManager;
 Controlador Ctrl;
 unsigned long guillotineOpenedAt = 0;
+bool teclado = true;
 
 void activateGuillotine() {
   if (servoManager.isGuillotineOpen()) {
@@ -22,13 +20,27 @@ void activateGuillotine() {
   }
 }
 
+void readKeyboard() {
+  if (!teclado) {
+    return;
+  }
+
+  while (Serial.available() > 0) {
+    char command = Serial.read();
+    if (command == 'r' || command == 'R') {
+      Serial.println("Tecla R recibida");
+      activateGuillotine();
+    }
+  }
+}
+
 void setup() {
   Serial.begin(115200);
 
   Serial.println("Posición inicial");
   servoManager.begin();
 
-  Ctrl.RegistrarAccion(BUTTON_PIN, EventoBoton::Pulsar, activateGuillotine);
+  Ctrl.RegistrarAccion(PIN_BUTTON, EventoBoton::Pulsar, activateGuillotine);
   Ctrl.InicializarCtrl();
 
   Serial.println("--- Prueba de guillotina lista ---");
@@ -36,7 +48,8 @@ void setup() {
 }
 
 void loop() {
-  Ctrl.ActualizarCtrl(Tiempo_Espera);
+  Ctrl.ActualizarCtrl(DEBOUNCE_DELAY_MS);
+  readKeyboard();
 
   if (servoManager.isGuillotineOpen() && millis() - guillotineOpenedAt >= guillotineOpenDuration) {
     Serial.println("500 ms cumplidos: cerrando guillotina");

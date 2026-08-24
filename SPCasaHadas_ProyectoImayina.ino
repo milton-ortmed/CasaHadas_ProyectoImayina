@@ -55,6 +55,7 @@ Controlador Ctrl;
 uint32_t purpurinaStageStartTime = 0;
 uint32_t showRunningStartTime = 0;
 bool purpurinaCompleted = false;
+bool teclado = true;
 
 // ==========================================
 // PROTOTIPOS DE FUNCIONES
@@ -63,6 +64,7 @@ void setupWatchdog();
 void activateShow();
 void updateFSM();
 void processPurpurinaSequence();
+void readKeyboard();
 
 // ==========================================
 // SETUP PRINCIPAL
@@ -99,7 +101,10 @@ void loop() {
     // 1. Actualización del controlador de botones con antirrebote
     Ctrl.ActualizarCtrl(DEBOUNCE_DELAY_MS);
 
-    // 2. Despachador de la Máquina de Estados Finita (FSM)
+    // 2. Lectura opcional del teclado por el monitor serial
+    readKeyboard();
+
+    // 3. Despachador de la Máquina de Estados Finita (FSM)
     updateFSM();
 }
 
@@ -128,8 +133,22 @@ void activateShow() {
         return;
     }
 
-    Serial.println("[EVENTO] Botón Antivandálico Presionado -> Activando Show");
+    Serial.println("[EVENTO] Activación recibida -> Activando Show");
     currentState = STATE_ACTIVATED;
+}
+
+void readKeyboard() {
+    if (!teclado) {
+        return;
+    }
+
+    while (Serial.available() > 0) {
+        char command = Serial.read();
+        if (command == 'r' || command == 'R') {
+            Serial.println("[EVENTO] Tecla R recibida");
+            activateShow();
+        }
+    }
 }
 
 // ==========================================

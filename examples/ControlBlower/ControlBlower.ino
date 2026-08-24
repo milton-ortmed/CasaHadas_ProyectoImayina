@@ -11,6 +11,7 @@ const unsigned long BLOWER_ACTIVATION_TIME_MS =
 BlowerControl blower;
 Controlador Ctrl;
 unsigned long blowerActivatedAt = 0;
+bool teclado = true;
 
 void activateBlower() {
   if (blower.isOn()) {
@@ -20,6 +21,20 @@ void activateBlower() {
   blower.turnOn();
   blowerActivatedAt = millis();
   Serial.println("Estado: Botón PRESIONADO -> Blower ENCENDIDO");
+}
+
+void readKeyboard() {
+  if (!teclado) {
+    return;
+  }
+
+  while (Serial.available() > 0) {
+    char command = Serial.read();
+    if (command == 'r' || command == 'R') {
+      Serial.println("Tecla R recibida");
+      activateBlower();
+    }
+  }
 }
 
 void setup() {
@@ -38,6 +53,7 @@ void setup() {
 
 void loop() {
   Ctrl.ActualizarCtrl(TIEMPO_ESPERA);
+  readKeyboard();
 
   if (blower.isOn() && millis() - blowerActivatedAt >= BLOWER_ACTIVATION_TIME_MS) {
     blower.turnOff();
