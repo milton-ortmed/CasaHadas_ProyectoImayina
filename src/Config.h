@@ -24,7 +24,7 @@
 // PARÁMETROS DE SERVO (ÁNGULOS MG90S)
 // ==========================================
 #define GUILLOTINE_CLOSED_ANGLE  0   // Grados con la guillotina de purpurina sellada
-#define GUILLOTINE_OPEN_ANGLE   90   // Grados para apertura de liberación de purpurina
+#define GUILLOTINE_OPEN_ANGLE   180   // Grados para apertura de liberación de purpurina
 
 // Pulso estándar MG90S (microsegundos)
 #define SERVO_MIN_PULSE        500
