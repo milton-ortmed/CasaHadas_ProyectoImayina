@@ -5,8 +5,7 @@
 // Definición de pines según la tabla del ESP32-S3 Super Mini
 const int BUTTON_PIN = PIN_BUTTON; // Botón (un pin a GPIO 7, el otro a GND)
 const int TIEMPO_ESPERA = 100;
-const unsigned long BLOWER_ACTIVATION_TIME_MS =
-    BLOWER_PRE_TIME_MS + GUILLOTINE_OPEN_TIME_MS + BLOWER_POST_CLEAN_TIME_MS;
+const unsigned long BLOWER_ACTIVATION_TIME_MS = BLOWER_DURATION_MS;
 
 BlowerControl blower;
 Controlador Ctrl;

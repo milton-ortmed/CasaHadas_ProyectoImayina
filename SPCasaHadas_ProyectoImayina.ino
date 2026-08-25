@@ -32,9 +32,9 @@ enum SystemState {
 // Sub-estados de la secuencia asíncrona de purpurina (previene atascos)
 enum PurpurinaStage {
     PURPURINA_IDLE,
-    PURPURINA_PRE_BLOWER,       // Pre-soplado con Blower al 100%
     PURPURINA_OPEN_GUILLOTINE,  // Apertura de Guillotina para liberación de mica
-    PURPURINA_POST_CLEAN,       // Soplado de limpieza de cañón post-cierre
+    PURPURINA_WAIT_BLOWER,      // Espera antes de encender el blower
+    PURPURINA_BLOWER,           // Blower encendido después del cierre
     PURPURINA_DONE              // Secuencia de purpurina finalizada
 };
 
@@ -169,19 +169,17 @@ void updateFSM() {
 
         case STATE_ACTIVATED:
             Serial.println("[FSM] Estado: ACTIVATED -> Iniciando Audio y Mecanismo");
-            
-            // 1. Iniciar reproducción de audio temático en DFPlayer Mini
-            audioPlayer.ReproducirPista(1);
 
-            // 2. Cambiar brillo de luces e iniciar efecto mágico
-            lighting->setBrightness(BRIGHTNESS_SHOW);
-
-            // 3. Iniciar la secuencia de purpurina
-            purpurinaStage = PURPURINA_PRE_BLOWER;
+            // 1. Abrir la guillotina e iniciar su temporización.
+            purpurinaStage = PURPURINA_OPEN_GUILLOTINE;
             purpurinaStageStartTime = millis();
             showRunningStartTime = millis();
             purpurinaCompleted = false;
-            blower.turnOn(); // Paso 1: Pre-soplado del blower
+            servos.openGuillotine();
+
+            // 2. Iniciar reproducción de audio y cambiar brillo de luces.
+            audioPlayer.ReproducirPista(1);
+            lighting->setBrightness(BRIGHTNESS_SHOW);
 
             currentState = STATE_SHOW_RUNNING;
             break;
@@ -227,30 +225,30 @@ void processPurpurinaSequence() {
 
     switch (purpurinaStage) {
 
-        case PURPURINA_PRE_BLOWER:
-            // Paso 1: Blower encendido pre-soplado por 0.2s
-            if (elapsedTime >= BLOWER_PRE_TIME_MS) {
-                Serial.println("[PURPURINA] Abriendo Guillotina de Mica");
-                servos.openGuillotine();
-                purpurinaStage = PURPURINA_OPEN_GUILLOTINE;
-                purpurinaStageStartTime = millis();
-            }
-            break;
-
         case PURPURINA_OPEN_GUILLOTINE:
-            // Paso 2: Guillotina abierta durante 0.5s para liberar mica
+            // Paso 1: Guillotina abierta durante el tiempo configurado.
             if (elapsedTime >= GUILLOTINE_OPEN_TIME_MS) {
                 Serial.println("[PURPURINA] Cerrando Guillotina");
                 servos.closeGuillotine();
-                purpurinaStage = PURPURINA_POST_CLEAN;
+                purpurinaStage = PURPURINA_WAIT_BLOWER;
                 purpurinaStageStartTime = millis();
             }
             break;
 
-        case PURPURINA_POST_CLEAN:
-            // Paso 3: Mantener Blower encendido 1.0s adicional para limpiar cañón
-            if (elapsedTime >= BLOWER_POST_CLEAN_TIME_MS) {
-                Serial.println("[PURPURINA] Ciclo de Limpieza de Cañón Completado -> Apagando Blower");
+        case PURPURINA_WAIT_BLOWER:
+            // Paso 2: Esperar antes de encender el blower.
+            if (elapsedTime >= BLOWER_START_DELAY_MS) {
+                Serial.println("[PURPURINA] Encendiendo Blower");
+                blower.turnOn();
+                purpurinaStage = PURPURINA_BLOWER;
+                purpurinaStageStartTime = millis();
+            }
+            break;
+
+        case PURPURINA_BLOWER:
+            // Paso 3: Mantener el blower encendido durante 2 segundos.
+            if (elapsedTime >= BLOWER_DURATION_MS) {
+                Serial.println("[PURPURINA] Tiempo del Blower cumplido -> Apagando Blower");
                 blower.turnOff();
                 purpurinaStage = PURPURINA_DONE;
                 purpurinaCompleted = true;

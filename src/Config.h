@@ -33,9 +33,9 @@
 // ==========================================
 // SECUENCIA ASÍNCRONA DE PURPURINA (TIEMPOS MS)
 // ==========================================
-#define BLOWER_PRE_TIME_MS          500  // Pre-soplado antes de abrir guillotina (0.2s)
 #define GUILLOTINE_OPEN_TIME_MS     500  // Tiempo de guillotina abierta (0.5s)
-#define BLOWER_POST_CLEAN_TIME_MS  1000  // Soplado posterior para limpiar cañón (1.0s)
+#define BLOWER_START_DELAY_MS       500  // Espera después de cerrar la guillotina (0.5s)
+#define BLOWER_DURATION_MS         2000  // Tiempo de funcionamiento del blower (2.0s)
 
 // ==========================================
 // ILUMINACIÓN (WS2812B - FastLED)
