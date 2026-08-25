@@ -3,5 +3,5 @@
     "board": "esp32:esp32:esp32s3",
     "port": "COM12",
     "programmer": "esptool",
-    "sketch": "examples\\PruebaAudioDFPlayer\\PruebaAudioDFPlayer.ino"
+    "sketch": "SPCasaHadas_ProyectoImayina.ino"
 }

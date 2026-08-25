@@ -49,7 +49,7 @@ ILightingController* lighting = new FastLEDController();
 
 ServoManager servos;
 BlowerControl blower;
-ControladorDFRobotDFPlayerMini audioPlayer;
+ControladorDFRobotDFPlayerMini audioPlayer(PIN_DFPLAYER_RX, PIN_DFPLAYER_TX, PIN_DFPLAYER_BUSY);
 Controlador Ctrl;
 
 uint32_t purpurinaStageStartTime = 0;
@@ -106,6 +106,9 @@ void loop() {
 
     // 3. Despachador de la Máquina de Estados Finita (FSM)
     updateFSM();
+
+    // Cede el procesador para que las tareas idle del ESP32 se ejecuten.
+    delay(1);
 }
 
 // ==========================================
@@ -119,6 +122,7 @@ void setupWatchdog() {
         .trigger_panic = true
     };
     esp_task_wdt_reconfigure(&wdt_config);
+    esp_task_wdt_add(NULL);
 #else
     esp_task_wdt_init(WDT_TIMEOUT_SECONDS, true);
     esp_task_wdt_add(NULL);

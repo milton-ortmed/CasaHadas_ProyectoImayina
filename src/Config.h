@@ -33,7 +33,7 @@
 // ==========================================
 // SECUENCIA ASÍNCRONA DE PURPURINA (TIEMPOS MS)
 // ==========================================
-#define BLOWER_PRE_TIME_MS          200  // Pre-soplado antes de abrir guillotina (0.2s)
+#define BLOWER_PRE_TIME_MS          500  // Pre-soplado antes de abrir guillotina (0.2s)
 #define GUILLOTINE_OPEN_TIME_MS     500  // Tiempo de guillotina abierta (0.5s)
 #define BLOWER_POST_CLEAN_TIME_MS  1000  // Soplado posterior para limpiar cañón (1.0s)
 
