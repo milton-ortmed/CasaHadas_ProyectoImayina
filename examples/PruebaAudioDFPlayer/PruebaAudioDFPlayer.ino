@@ -15,14 +15,17 @@ bool teclado = true;
 void initDFPlayer() {
     Serial.print("Inicializando DFPlayer Mini...");
     reproductor.Inicializar();
+    delay(200);
     Serial.println(" OK.");
     reproductor.EstablecerVolumen(5);
+    delay(200);
 }
 
 void playTrack() {
     Serial.print("Reproduciendo pista: ");
     Serial.println(MIN_TRACK);
     reproductor.ReproducirPista(MIN_TRACK);
+    delay(200);
 }
 
 void readKeyboard() {
