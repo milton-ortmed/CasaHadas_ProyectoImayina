@@ -25,13 +25,14 @@
 enum SystemState {
     STATE_IDLE,          // Reposó: Iluminación tenue ("hada dentro"), espera de botón
     STATE_ACTIVATED,     // Activación: Inicia audio y prepara purpurina
-    STATE_SHOW_RUNNING,  // Espectáculo: Mantiene show, ejecuta secuencia de purpurina y monitorea pin BUSY
-    STATE_CLOSING        // Cierre: Limpia estados y regresa a IDLE
+    STATE_SHOW_RUNNING,  // Espectáculo: Mantiene show, ejecuta secuencia de purpurina (también podría monitorear pin BUSY)
+    STATE_CLOSING,       // Cierre: Limpia estados y regresa a IDLE
+    STATE_SHOW_AUTO      // Espectáculo automático: Mantiene show secundario de luz y sonido
 };
 
 // Sub-estados de la secuencia asíncrona de purpurina (previene atascos)
 enum PurpurinaStage {
-    PURPURINA_IDLE,
+    PURPURINA_IDLE,             // Estado inicial de reposo
     PURPURINA_OPEN_GUILLOTINE,  // Apertura de Guillotina para liberación de mica
     PURPURINA_WAIT_BLOWER,      // Espera antes de encender el blower
     PURPURINA_BLOWER,           // Blower encendido después del cierre
@@ -44,9 +45,8 @@ enum PurpurinaStage {
 SystemState currentState = STATE_IDLE;
 PurpurinaStage purpurinaStage = PURPURINA_IDLE;
 
-// Abstracción del controlador de iluminación (FastLED)
+// Objetos de los controladores de hardware
 ILightingController* lighting = new FastLEDController();
-
 ServoManager servos;
 BlowerControl blower;
 ControladorDFRobotDFPlayerMini audioPlayer(PIN_DFPLAYER_RX, PIN_DFPLAYER_TX, PIN_DFPLAYER_BUSY);
@@ -58,6 +58,10 @@ bool purpurinaCompleted = false;
 bool teclado = true;
 int showChoosen = 0;
 int trackChoosen = 0;
+const uint32_t INTERVALO_MS = 60UL * 60UL * 1000UL; // 1 hora
+uint32_t ultimoEvento = 0;
+uint8_t audioRandom; // pista para el show secundario
+uint8_t luzRandom = random8(0,1); // animación para el show secundario
 
 // ==========================================
 // PROTOTIPOS DE FUNCIONES
@@ -97,6 +101,13 @@ void setup() {
 // BUCLE PRINCIPAL (LOOP)
 // ==========================================
 void loop() {
+    // Lectura de tiempo para activar el show secundario
+    uint32_t ahora = millis();
+    if (ahora - ultimoEvento >= INTERVALO_MS) {
+        ultimoEvento = ahora;
+        activateShowAuto();
+    }
+
     // Alimenta el Watchdog Timer para evitar reinicios por falso colgado
     esp_task_wdt_reset();
 
@@ -145,6 +156,9 @@ void activateShow() {
     currentState = STATE_ACTIVATED;
 }
 
+// ==========================================
+// EVENTO DE TECLADO (FUNCIÓN AUXILIAR PARA PRUEBAS)
+// ==========================================
 void readKeyboard() {
     if (!teclado) {
         return;
@@ -224,6 +238,20 @@ void updateFSM() {
             currentState = STATE_IDLE;
             Serial.println("[FSM] Retorno a STATE_IDLE completado");
             break;
+        case STATE_SHOW_AUTO:
+            if (luzRandom == 1) {
+                lighting->updateShowEffect();
+            } else {
+                lighting->updateAmberSequenceEffect2();
+            }
+
+            if (millis() - showRunningStartTime >= SHOW_RUNNING_DURATION_MS) {
+                Serial.println("[FSM] Duración de SHOW_RUNNING completada");
+                lighting->setBrightness(BRIGHTNESS_IDLE);
+                currentState = STATE_IDLE;
+                Serial.println("[FSM] Retorno a STATE_IDLE completado");
+            }
+            break;
     }
 }
 
@@ -269,4 +297,27 @@ void processPurpurinaSequence() {
         case PURPURINA_IDLE:
             break;
     }
+}
+
+// ==========================================
+// EVENTO DE TIEMPO
+// ==========================================
+void activateShowAuto() {
+    if (currentState != STATE_IDLE) {
+        return;
+    }
+
+    Serial.println("[EVENTO] Tiempo alcanzado -> Activando Show Secundario");
+
+    audioRandom = random8(1, 3);
+    luzRandom = random8(0,1);
+
+    currentState = STATE_SHOW_AUTO;
+
+    Serial.println("[FSM] Estado: SHOW_AUTO -> Iniciando Audio y Luz Aleatoria");
+    showRunningStartTime = millis();
+    Serial.print("[AUDIO] Reproduciendo pista: ");
+    Serial.println(audioRandom);
+    audioPlayer.ReproducirPista(audioRandom);
+    lighting->setBrightness(BRIGHTNESS_SHOW);
 }
