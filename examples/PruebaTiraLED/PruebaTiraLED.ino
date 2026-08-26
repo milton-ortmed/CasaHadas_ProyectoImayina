@@ -23,9 +23,10 @@ FastLEDController lighting;
 Controlador Ctrl;
 TestMode currentMode = MODE_IDLE;
 uint32_t modeStartedAt = 0;
+int showChoosen = 0;
 bool teclado = true;
 
-const uint32_t SHOW_DURATION_MS = 7000;
+const uint32_t SHOW_DURATION_MS = SHOW_RUNNING_DURATION_MS;
 
 void startShow();
 void readKeyboard();
@@ -64,12 +65,15 @@ void loop() {
     }
 
     if (currentMode == MODE_IDLE) {
-        // lighting.updateIdleEffect(); // Secuencia de respiración y titileo cálido
+        //lighting.updateIdleEffect(); // Secuencia de respiración y titileo cálido
         FastLED.clear(); // Limpiar los LEDs
         FastLED.show();
     } else {
-        // lighting.updateShowEffect(); // Secuencia de destellos mágicos y pulso brillante
-        lighting.updateAmberSequenceEffect(); // Secuencia ámbar
+        if (showChoosen == 1) {
+            lighting.updateShowEffect(); // Secuencia de destellos mágicos y pulso brillante
+        } else {
+            lighting.updateAmberSequenceEffect2(); // Secuencia de colores del efecto SHOW
+        }
     }
 }
 
@@ -79,6 +83,7 @@ void startShow() {
     }
 
     currentMode = MODE_SHOW;
+    showChoosen = (showChoosen + 1) % 2;
     modeStartedAt = millis();
     lighting.setBrightness(BRIGHTNESS_SHOW);
     Serial.println("Boton presionado: iniciando SHOW durante 7 segundos");

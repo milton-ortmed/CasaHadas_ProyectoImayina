@@ -40,7 +40,7 @@
 // ==========================================
 // ILUMINACIÓN (WS2812B - FastLED)
 // ==========================================
-#define NUM_LEDS             8  // 8x Módulo LED WS2812B NeoPixel
+#define NUM_LEDS             15  // 8x Módulo LED WS2812B NeoPixel
 #define BRIGHTNESS_IDLE      60  // Brillo tenue para efecto reposo (0-255)
 #define BRIGHTNESS_SHOW     255  // Brillo máximo durante el espectáculo (0-255)
 #define AMBER_SEQUENCE_INTERVAL_MS 50 // Tiempo entre LEDs de la secuencia ámbar

@@ -36,6 +36,11 @@ public:
     virtual void updateAmberSequenceEffect() = 0;
 
     /**
+     * @brief Actualiza una secuencia de recorrido con colores del efecto SHOW.
+     */
+    virtual void updateAmberSequenceEffect2() = 0;
+
+    /**
      * @brief Define el nivel de brillo general de los LEDs.
      * @param brightness Valor entre 0 y 255.
      */

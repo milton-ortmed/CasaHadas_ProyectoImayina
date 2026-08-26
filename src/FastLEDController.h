@@ -22,7 +22,7 @@ public:
 
     void begin() override {
         // FastLED inicialización para WS2812B en PIN_LED_DATA (GPIO 4)
-        FastLED.addLeds<WS2812B, PIN_LED_DATA, RGB>(leds, NUM_LEDS);
+        FastLED.addLeds<WS2812B, PIN_LED_DATA, GRB>(leds, NUM_LEDS);
         FastLED.setBrightness(BRIGHTNESS_IDLE);
         FastLED.clear();
         FastLED.show();
@@ -89,6 +89,23 @@ public:
         FastLED.setBrightness(BRIGHTNESS_SHOW);
         fill_solid(leds, NUM_LEDS, CRGB::Black);
         leds[amberSequenceIndex] = CHSV(32, 220, 255);
+        FastLED.show();
+
+        amberSequenceIndex = (amberSequenceIndex + 1) % NUM_LEDS;
+    }
+
+    /**
+     * @brief Recorre la tira encendiendo un LED con un color del rango del efecto SHOW.
+     */
+    void updateAmberSequenceEffect2() override {
+        uint32_t now = millis();
+        if (now - lastUpdateMs < AMBER_SEQUENCE_INTERVAL_MS) return;
+        lastUpdateMs = now;
+
+        FastLED.setBrightness(BRIGHTNESS_SHOW);
+        fill_solid(leds, NUM_LEDS, CRGB::Black);
+        uint8_t hue = random8(120, 220);
+        leds[amberSequenceIndex] = CHSV(hue, 180, 255);
         FastLED.show();
 
         amberSequenceIndex = (amberSequenceIndex + 1) % NUM_LEDS;
