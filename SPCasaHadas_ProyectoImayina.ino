@@ -56,6 +56,8 @@ uint32_t purpurinaStageStartTime = 0;
 uint32_t showRunningStartTime = 0;
 bool purpurinaCompleted = false;
 bool teclado = true;
+int showChoosen = 0;
+int trackChoosen = 0;
 
 // ==========================================
 // PROTOTIPOS DE FUNCIONES
@@ -138,6 +140,8 @@ void activateShow() {
     }
 
     Serial.println("[EVENTO] Activación recibida -> Activando Show");
+    showChoosen = (showChoosen + 1) % 2;
+    trackChoosen = (trackChoosen % 3) + 1;
     currentState = STATE_ACTIVATED;
 }
 
@@ -178,15 +182,21 @@ void updateFSM() {
             servos.openGuillotine();
 
             // 2. Iniciar reproducción de audio y cambiar brillo de luces.
-            audioPlayer.ReproducirPista(1);
+            Serial.print("[AUDIO] Reproduciendo pista: ");
+            Serial.println(trackChoosen);
+            audioPlayer.ReproducirPista(trackChoosen);
             lighting->setBrightness(BRIGHTNESS_SHOW);
 
             currentState = STATE_SHOW_RUNNING;
             break;
 
         case STATE_SHOW_RUNNING:
-            // 1. Actualizar la secuencia ámbar mientras el audio esté activo
-            lighting->updateAmberSequenceEffect();
+            // 1. Alternar el patrón de iluminación en cada activación.
+            if (showChoosen == 1) {
+                lighting->updateShowEffect();
+            } else {
+                lighting->updateAmberSequenceEffect2();
+            }
 
             // 2. Procesar secuencia asíncrona de purpurina
             if (!purpurinaCompleted) {
