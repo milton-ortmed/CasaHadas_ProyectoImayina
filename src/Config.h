@@ -33,7 +33,7 @@
 // ==========================================
 // SECUENCIA ASÍNCRONA DE PURPURINA (TIEMPOS MS)
 // ==========================================
-#define GUILLOTINE_OPEN_TIME_MS     500  // Tiempo de guillotina abierta (0.5s)
+#define GUILLOTINE_OPEN_TIME_MS     3000  // Tiempo de guillotina abierta (1s)
 #define BLOWER_START_DELAY_MS       500  // Espera después de cerrar la guillotina (0.5s)
 #define BLOWER_DURATION_MS         2000  // Tiempo de funcionamiento del blower (2.0s)
 
@@ -44,8 +44,8 @@
 #define BRIGHTNESS_IDLE      60  // Brillo tenue para efecto reposo (0-255)
 #define BRIGHTNESS_SHOW     255  // Brillo máximo durante el espectáculo (0-255)
 #define AMBER_SEQUENCE_INTERVAL_MS 50 // Tiempo entre LEDs de la secuencia ámbar
-#define SHOW_RUNNING_DURATION_MS 7000 // Duración del estado SHOW_RUNNING
-
+#define SHOW_RUNNING_DURATION_MS 10000 // Duración del estado SHOW_RUNNING
+#define AUTO_SHOW_RUNNING_DURATION_MS 7000 // Duración del estado SHOW_AUTO
 // ==========================================
 // TIEMPOS DE DEBOUNCE Y SEGURIDAD
 // ==========================================

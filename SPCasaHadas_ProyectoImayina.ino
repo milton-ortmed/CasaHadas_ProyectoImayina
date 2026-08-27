@@ -196,9 +196,11 @@ void updateFSM() {
             servos.openGuillotine();
 
             // 2. Iniciar reproducción de audio y cambiar brillo de luces.
+            /* La pista de audio se reproducirá después del movimiento del servo
             Serial.print("[AUDIO] Reproduciendo pista: ");
             Serial.println(trackChoosen);
             audioPlayer.ReproducirPista(trackChoosen);
+            */
             lighting->setBrightness(BRIGHTNESS_SHOW);
 
             currentState = STATE_SHOW_RUNNING;
@@ -245,7 +247,7 @@ void updateFSM() {
                 lighting->updateAmberSequenceEffect2();
             }
 
-            if (millis() - showRunningStartTime >= SHOW_RUNNING_DURATION_MS) {
+            if (millis() - showRunningStartTime >= AUTO_SHOW_RUNNING_DURATION_MS) {
                 Serial.println("[FSM] Duración de SHOW_RUNNING completada");
                 lighting->setBrightness(BRIGHTNESS_IDLE);
                 currentState = STATE_IDLE;
@@ -268,6 +270,9 @@ void processPurpurinaSequence() {
             if (elapsedTime >= GUILLOTINE_OPEN_TIME_MS) {
                 Serial.println("[PURPURINA] Cerrando Guillotina");
                 servos.closeGuillotine();
+                Serial.print("[AUDIO] Reproduciendo pista: ");
+                Serial.println(trackChoosen);
+                audioPlayer.ReproducirPista(trackChoosen);
                 purpurinaStage = PURPURINA_WAIT_BLOWER;
                 purpurinaStageStartTime = millis();
             }
