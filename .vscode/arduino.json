@@ -3,5 +3,5 @@
     "board": "esp32:esp32:esp32s3",
     "port": "COM14",
     "programmer": "esptool",
-    "sketch": "examples\\PruebaTiraLED\\PruebaTiraLED.ino"
+    "sketch": "SPCasaHadas_ProyectoImayina.ino"
 }
