@@ -1,0 +1,55 @@
+{
+  "name": "CasaHadas_ProyectoImayina",
+  "version": "2.0.0",
+  "description": "Control de iluminacion, mecanismo de purpurina y audio para las Casas de Hadas del proyecto Imayina.",
+  "keywords": [
+    "esp32-s3",
+    "arduino",
+    "ws2812b",
+    "dfplayer",
+    "servo",
+    "blower"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/milton-ortmed/CasaHadas_ProyectoImayina"
+  },
+  "authors": [
+    {
+      "name": "Milton Elias Pech Uc",
+      "maintainer": true
+    }
+  ],
+  "license": "Proprietary",
+  "frameworks": [
+    "arduino"
+  ],
+  "platforms": [
+    "espressif32"
+  ],
+  "dependencies": {
+    "FastLED": "^3.6.0",
+    "ESP32Servo": "^3.0.6",
+    "DFRobotDFPlayerMini": "^1.0.6",
+    "Botones": "*"
+  },
+  "headers": [
+    "BlowerControl.h",
+    "Config.h",
+    "FastLEDController.h",
+    "ILightingController.h",
+    "ServoManager.h",
+    "SPControladorDFPlayerMini.cpp",
+    "SPControladorDFPlayerMini.hpp",
+    "TarjetaAudio.cpp",
+    "TarjetaAudio.hpp"
+  ],
+  "examples": [
+    {
+      "name": "CasaHadas_ProyectoImayina",
+      "files": [
+        "CasaHadas_ProyectoImayina.ino"
+      ]
+    }
+  ]
+}

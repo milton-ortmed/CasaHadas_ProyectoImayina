@@ -33,14 +33,14 @@
 // ==========================================
 // SECUENCIA ASÍNCRONA DE PURPURINA (TIEMPOS MS)
 // ==========================================
-#define GUILLOTINE_OPEN_TIME_MS     3000  // Tiempo de guillotina abierta (1s)
+#define GUILLOTINE_OPEN_TIME_MS     3000  // Tiempo de guillotina abierta (3.0s)
 #define BLOWER_START_DELAY_MS       500  // Espera después de cerrar la guillotina (0.5s)
 #define BLOWER_DURATION_MS         2000  // Tiempo de funcionamiento del blower (2.0s)
 
 // ==========================================
 // ILUMINACIÓN (WS2812B - FastLED)
 // ==========================================
-#define NUM_LEDS             30  // 8x Módulo LED WS2812B NeoPixel
+#define NUM_LEDS             30  // 30x Módulo LED WS2812B NeoPixel
 #define BRIGHTNESS_IDLE      60  // Brillo tenue para efecto reposo (0-255)
 #define BRIGHTNESS_SHOW     255  // Brillo máximo durante el espectáculo (0-255)
 #define AMBER_SEQUENCE_INTERVAL_MS 50 // Tiempo entre LEDs de la secuencia ámbar
