@@ -3,7 +3,7 @@
 #include "../../src/TarjetaAudio.cpp"
 #include "../../src/SPControladorDFPlayerMini.hpp"
 #include "../../src/SPControladorDFPlayerMini.cpp"
-#include <Botones.hpp>
+#include "../../src/Botones.hpp"
 
 const int TIEMPO_ESPERA = 100;
 #define MIN_TRACK 1
