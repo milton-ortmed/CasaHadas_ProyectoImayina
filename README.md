@@ -8,15 +8,39 @@ Este software y su documentación son propiedad de ORTMED S.A de C.V. Está estr
 
 ## Mapeo de pines
 
-| Pin del ESP32-S3 Super Mini | Sensor o actuador | Conexión / función |
+El mapa activo se selecciona en `src/Config.h` mediante `USE_ESP32_WROOM32`.
+
+### ESP32 WROOM32 con LoRa (configuración predeterminada)
+
+| Pin | Sensor o actuador | Conexión / función |
+| --- | --- | --- |
+| GPIO 13 | Servo MG90S de la guillotina | Señal PWM del servo |
+| GPIO 27 | MOSFET del Mini Blower 3010 (5 V) | Salida para activar el soplador |
+| GPIO 4 | Tira LED WS2812B | Línea de datos DIN |
+| GPIO 17 | DFPlayer Mini | TX del ESP32 hacia RX del DFPlayer |
+| GPIO 16 | DFPlayer Mini | RX del ESP32 desde TX del DFPlayer |
+| GPIO 32 | Botón antivandálico IP67 | Entrada digital con `INPUT_PULLUP` |
+| GPIO 35 | DFPlayer Mini | Entrada `BUSY` con `INPUT_PULLUP` |
+| GPIO 18 | Módulo LoRa | SPI SCK |
+| GPIO 19 | Módulo LoRa | SPI MISO |
+| GPIO 23 | Módulo LoRa | SPI MOSI |
+| GPIO 25 | Módulo LoRa | NSS/CS |
+| GPIO 14 | Módulo LoRa | RESET |
+| GPIO 26 | Módulo LoRa | DIO0/IRQ |
+
+El módulo LoRa debe trabajar a 3.3 V y compartir GND con el ESP32. Este cambio reserva los pines; la integración del protocolo LoRa requiere añadir el controlador o librería correspondiente.
+
+### ESP32-S3 Super Mini sin LoRa (configuración anterior)
+
+| Pin | Sensor o actuador | Conexión / función |
 | --- | --- | --- |
 | GPIO 5 | Servo MG90S de la guillotina | Señal PWM del servo |
-| GPIO 2 | MOSFET del Mini Blower 3010 (5 V) | Salida PWM para activar el soplador |
-| GPIO 10 | Tira LED WS2812B, 8 LEDs | Línea de datos DIN |
-| GPIO 6 | DFPlayer Mini | TX del ESP32 hacia RX del DFPlayer, con resistencia de 1 kOhm |
-| GPIO 7 | DFPlayer Mini | RX del ESP32 desde TX del DFPlayer, con resistencia de 1 kOhm |
-| GPIO 9 | Botón antivandálico IP67 | Entrada digital con `INPUT_PULLUP`; el botón conecta el pin a GND al pulsarse |
-| GPIO 8 | DFPlayer Mini | Entrada `BUSY` con `INPUT_PULLUP`; nivel LOW indica reproducción activa, actualmente en desuso |
+| GPIO 2 | MOSFET del Mini Blower 3010 (5 V) | Salida para activar el soplador |
+| GPIO 10 | Tira LED WS2812B | Línea de datos DIN |
+| GPIO 6 | DFPlayer Mini | TX del ESP32 hacia RX del DFPlayer |
+| GPIO 7 | DFPlayer Mini | RX del ESP32 desde TX del DFPlayer |
+| GPIO 9 | Botón antivandálico IP67 | Entrada digital con `INPUT_PULLUP` |
+| GPIO 8 | DFPlayer Mini | Entrada `BUSY` con `INPUT_PULLUP` |
 
 ## Lógica de funcionamiento
 
