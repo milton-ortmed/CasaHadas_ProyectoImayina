@@ -1,7 +1,7 @@
 /**
  * @file Config.h
  * @brief Configuración global de pines, tiempos y constantes del proyecto "Casas de Hadas - Mundo Imayina".
- * @microcontroller ESP32-S3 Super Mini
+ * @microcontroller ESP32 WROOM32 o ESP32-S3 Super Mini
  */
 
 #ifndef CONFIG_H
@@ -10,15 +10,57 @@
 #include <Arduino.h>
 
 // ==========================================
-// MAPEO DE PINES (GPIO - ESP32-S3 Super Mini)
+// SELECCIÓN DE HARDWARE
 // ==========================================
-#define PIN_SERVO_GUILLOTINE   5  // GPIO 5: Señal PWM -> Servo de la guillotina MG90S
-#define PIN_BLOWER_MOSFET     2  // GPIO 2: Salida Digital -> Control MOSFET (Blower 5V)
-#define PIN_LED_DATA          10  // GPIO 10: Datos DIN -> Tira WS2812B (FastLED)
-#define PIN_DFPLAYER_TX       6  // GPIO 6: ESP32 TX -> RX DFPlayer Mini (vía res 1kΩ)
-#define PIN_DFPLAYER_RX       7  // GPIO 7: ESP32 RX -> TX DFPlayer Mini
-#define PIN_BUTTON            9  // GPIO 9: Entrada Digital -> Botón IP67 (INPUT_PULLUP)
-#define PIN_DFPLAYER_BUSY     8  // GPIO 8: Entrada Digital -> Pin BUSY DFPlayer (LOW = reproduciendo)
+// 1 = ESP32 WROOM32 con módulo LoRa
+// 0 = ESP32-S3 Super Mini sin LoRa (configuración anterior)
+#ifndef USE_ESP32_WROOM32
+#define USE_ESP32_WROOM32 1
+#endif
+
+#if USE_ESP32_WROOM32
+
+// ==========================================
+// MAPEO DE PINES (ESP32 WROOM32 + LoRa)
+// ==========================================
+#define PIN_SERVO_GUILLOTINE   13 // GPIO 13: Señal PWM -> Servo de la guillotina MG90S
+#define PIN_BLOWER_MOSFET      27 // GPIO 27: Salida digital -> Control MOSFET (Blower 5V)
+#define PIN_LED_DATA            4 // GPIO 4: Datos DIN -> Tira WS2812B (FastLED)
+#define PIN_DFPLAYER_TX        17 // GPIO 17: TX UART2 -> RX DFPlayer Mini
+#define PIN_DFPLAYER_RX        16 // GPIO 16: RX UART2 <- TX DFPlayer Mini
+#define PIN_BUTTON             32 // GPIO 32: Entrada digital -> Botón IP67
+#define PIN_DFPLAYER_BUSY      35 // GPIO 35: Entrada solo entrada -> BUSY DFPlayer
+
+// LoRa SPI VSPI: SCK 18, MISO 19, MOSI 23.
+#define PIN_LORA_SCK           18 // GPIO 18: SCK del módulo LoRa
+#define PIN_LORA_MISO          19 // GPIO 19: MISO del módulo LoRa
+#define PIN_LORA_MOSI          23 // GPIO 23: MOSI del módulo LoRa
+#define PIN_LORA_CS            25 // GPIO 25: NSS/CS del módulo LoRa
+#define PIN_LORA_RST           14 // GPIO 14: RESET del módulo LoRa
+#define PIN_LORA_DIO0          26 // GPIO 26: DIO0/IRQ del módulo LoRa
+
+#else
+
+// ==========================================
+// MAPEO DE PINES (ESP32-S3 Super Mini, anterior)
+// ==========================================
+#define PIN_SERVO_GUILLOTINE    5 // GPIO 5: Señal PWM -> Servo de la guillotina MG90S
+#define PIN_BLOWER_MOSFET       2 // GPIO 2: Salida digital -> Control MOSFET (Blower 5V)
+#define PIN_LED_DATA           10 // GPIO 10: Datos DIN -> Tira WS2812B (FastLED)
+#define PIN_DFPLAYER_TX         6 // GPIO 6: TX -> RX DFPlayer Mini
+#define PIN_DFPLAYER_RX         7 // GPIO 7: RX <- TX DFPlayer Mini
+#define PIN_BUTTON              9 // GPIO 9: Entrada digital -> Botón IP67
+#define PIN_DFPLAYER_BUSY       8 // GPIO 8: Entrada digital -> BUSY DFPlayer
+
+// El módulo LoRa no está instalado en esta configuración.
+#define PIN_LORA_SCK           -1
+#define PIN_LORA_MISO          -1
+#define PIN_LORA_MOSI          -1
+#define PIN_LORA_CS            -1
+#define PIN_LORA_RST           -1
+#define PIN_LORA_DIO0          -1
+
+#endif
 
 // ==========================================
 // PARÁMETROS DE SERVO (ÁNGULOS MG90S)
@@ -35,7 +77,7 @@
 // ==========================================
 #define GUILLOTINE_OPEN_TIME_MS     3000  // Tiempo de guillotina abierta (3.0s)
 #define BLOWER_START_DELAY_MS       500  // Espera después de cerrar la guillotina (0.5s)
-#define BLOWER_DURATION_MS         2000  // Tiempo de funcionamiento del blower (2.0s)
+#define BLOWER_DURATION_MS         6000  // Tiempo de funcionamiento del blower (2.0s)
 
 // ==========================================
 // ILUMINACIÓN (WS2812B - FastLED)

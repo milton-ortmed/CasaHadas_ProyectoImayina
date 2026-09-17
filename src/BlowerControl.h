@@ -15,7 +15,7 @@ private:
     const uint8_t maxPulse;
 
 public:
-    BlowerControl() : running(false), maxPulse(60) {}
+    BlowerControl() : running(false), maxPulse(80) {}
 
     /**
      * @brief Configura el pin del MOSFET como salida y asegura que inicie apagado.
