@@ -15,8 +15,12 @@ El mapa activo se selecciona en `src/Config.h` mediante `USE_ESP32_WROOM32`.
 | Pin | Sensor o actuador | Conexión / función |
 | --- | --- | --- |
 | GPIO 13 | Servo MG90S de la guillotina | Señal PWM del servo |
-| GPIO 27 | MOSFET del Mini Blower 3010 (5 V) | Salida para activar el soplador |
+| GPIO 33 | MOSFET del Mini Blower 3010 (5 V) | Salida para activar el soplador |
+| GPIO 27 | MOSFET del ventilador (5 V) | Salida para activar el ventilador |
+| GPIO 22 | Actuador lineal (5 V) | Salida para mover hacia adelante |
+| GPIO 21 | Actuador lineal (5 V) | Salida para mover hacia atrás |
 | GPIO 4 | Tira LED WS2812B | Línea de datos DIN |
+| GPIO 5 | LED del hada | Ánodo |
 | GPIO 17 | DFPlayer Mini | TX del ESP32 hacia RX del DFPlayer |
 | GPIO 16 | DFPlayer Mini | RX del ESP32 desde TX del DFPlayer |
 | GPIO 32 | Botón antivandálico IP67 | Entrada digital con `INPUT_PULLUP` |
