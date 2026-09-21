@@ -23,21 +23,29 @@
 // ==========================================
 // MAPEO DE PINES (ESP32 WROOM32 + LoRa)
 // ==========================================
-#define PIN_SERVO_GUILLOTINE   13 // GPIO 13: Señal PWM -> Servo de la guillotina MG90S
-#define PIN_BLOWER_MOSFET      27 // GPIO 27: Salida digital -> Control MOSFET (Blower 5V)
-#define PIN_LED_DATA            4 // GPIO 4: Datos DIN -> Tira WS2812B (FastLED)
-#define PIN_DFPLAYER_TX        17 // GPIO 17: TX UART2 -> RX DFPlayer Mini
-#define PIN_DFPLAYER_RX        16 // GPIO 16: RX UART2 <- TX DFPlayer Mini
-#define PIN_BUTTON             32 // GPIO 32: Entrada digital -> Botón IP67
-#define PIN_DFPLAYER_BUSY      35 // GPIO 35: Entrada solo entrada -> BUSY DFPlayer
+#define PIN_SERVO_GUILLOTINE      13 // GPIO 13: Señal PWM -> Servo de la guillotina MG90S
+#define PIN_BLOWER_MOSFET         33 // GPIO 33: Salida digital -> Control MOSFET del blower (5V)
+#define PIN_VENTILATOR_MOSFET     27 // GPIO 27: Salida digital -> Control MOSFET del ventilador (5V)
+#define PIN_LINEAR_ACTUATOR_FWD   22 // GPIO 22: Salida digital -> Actuador lineal hacia adelante
+#define PIN_LINEAR_ACTUATOR_REV   21 // GPIO 21: Salida digital -> Actuador lineal hacia atrás
+#define PIN_LED_DATA               4 // GPIO 4: Datos DIN -> Tira WS2812B (FastLED)
+#define PIN_HADA_LED               5 // GPIO 5: LED del hada (ver nota de bootstrapping más abajo)
+#define PIN_DFPLAYER_TX           17 // GPIO 17: TX UART2 -> RX DFPlayer Mini
+#define PIN_DFPLAYER_RX           16 // GPIO 16: RX UART2 <- TX DFPlayer Mini
+#define PIN_BUTTON                32 // GPIO 32: Entrada digital -> Botón IP67
+#define PIN_DFPLAYER_BUSY         35 // GPIO 35: Entrada solo entrada -> BUSY DFPlayer
+
+// Nota importante: GPIO 4 y GPIO 5 son pines de arranque/strapping del ESP32.
+// Son funcionales para salidas normales si el pin queda libre en el arranque,
+// pero no conviene forzarlos con pull-down o conexiones externas en el encendido.
 
 // LoRa SPI VSPI: SCK 18, MISO 19, MOSI 23.
-#define PIN_LORA_SCK           18 // GPIO 18: SCK del módulo LoRa
-#define PIN_LORA_MISO          19 // GPIO 19: MISO del módulo LoRa
-#define PIN_LORA_MOSI          23 // GPIO 23: MOSI del módulo LoRa
-#define PIN_LORA_CS            25 // GPIO 25: NSS/CS del módulo LoRa
-#define PIN_LORA_RST           14 // GPIO 14: RESET del módulo LoRa
-#define PIN_LORA_DIO0          26 // GPIO 26: DIO0/IRQ del módulo LoRa
+#define PIN_LORA_SCK              18 // GPIO 18: SCK del módulo LoRa
+#define PIN_LORA_MISO             19 // GPIO 19: MISO del módulo LoRa
+#define PIN_LORA_MOSI             23 // GPIO 23: MOSI del módulo LoRa
+#define PIN_LORA_CS               25 // GPIO 25: NSS/CS del módulo LoRa
+#define PIN_LORA_RST              14 // GPIO 14: RESET del módulo LoRa
+#define PIN_LORA_DIO0             26 // GPIO 26: DIO0/IRQ del módulo LoRa
 
 #else
 
