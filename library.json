@@ -1,14 +1,17 @@
 {
   "name": "CasaHadas_ProyectoImayina",
-  "version": "2.0.0",
-  "description": "Control de iluminacion, mecanismo de purpurina y audio para las Casas de Hadas del proyecto Imayina.",
+  "version": "3.0.0",
+  "description": "Control de iluminacion, mecanismo de purpurina, mecanismo de hada y audio para las Casas de Hadas del proyecto Imayina.",
   "keywords": [
     "esp32-s3",
     "arduino",
     "ws2812b",
     "dfplayer",
     "servo",
-    "blower"
+    "blower",
+    "lora",
+    "spi",
+    "linear actuator"
   ],
   "repository": {
     "type": "git",
@@ -31,7 +34,9 @@
     "FastLED": "^3.6.0",
     "ESP32Servo": "^3.0.6",
     "DFRobotDFPlayerMini": "^1.0.6",
-    "Botones": "*"
+    "Botones": "*",
+    "LoRa": "^0.7.0",
+    "SPI": "^1.0.2"
   },
   "headers": [
     "BlowerControl.h",
@@ -42,7 +47,8 @@
     "SPControladorDFPlayerMini.cpp",
     "SPControladorDFPlayerMini.hpp",
     "TarjetaAudio.cpp",
-    "TarjetaAudio.hpp"
+    "TarjetaAudio.hpp",
+    "ActuadorLinealControl.h"
   ],
   "examples": [
     {

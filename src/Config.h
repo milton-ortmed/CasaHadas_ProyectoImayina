@@ -81,6 +81,11 @@
 #define SERVO_MAX_PULSE       2400
 
 // ==========================================
+// PARÁMETROS DE ACTUADOR LINEAL
+// ==========================================
+#define LINEAR_ACTUATOR_DURATION_MS  5000 // Tiempo de movimiento del actuador lineal (5.0s)
+
+// ==========================================
 // SECUENCIA ASÍNCRONA DE PURPURINA (TIEMPOS MS)
 // ==========================================
 #define GUILLOTINE_OPEN_TIME_MS     3000  // Tiempo de guillotina abierta (3.0s)
