@@ -22,14 +22,16 @@ public:
      */
     void begin() {
         pinMode(PIN_BLOWER_MOSFET, OUTPUT);
+        pinMode(PIN_VENTILATOR_MOSFET, OUTPUT);
         turnOff();
     }
 
     /**
-      * @brief Enciende el Mini Blower con un ciclo de trabajo PWM de 60/255.
+      * @brief Enciende el Mini Blower con un ciclo de trabajo PWM de 80/255.
      */
     void turnOn() {
-          analogWrite(PIN_BLOWER_MOSFET, maxPulse);
+        analogWrite(PIN_BLOWER_MOSFET, maxPulse);
+        digitalWrite(PIN_VENTILATOR_MOSFET, HIGH);
         running = true;
     }
 
@@ -38,6 +40,7 @@ public:
      */
     void turnOff() {
         analogWrite(PIN_BLOWER_MOSFET, 0);
+        digitalWrite(PIN_VENTILATOR_MOSFET, LOW);
         running = false;
     }
 

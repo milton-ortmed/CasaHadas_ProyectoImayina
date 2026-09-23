@@ -38,7 +38,9 @@ public:
         guillotineServo.attach(PIN_SERVO_GUILLOTINE, SERVO_MIN_PULSE, SERVO_MAX_PULSE);
 
         // Establecer la posición inicial de reposo (cerrada)
-        closeGuillotine();
+        guillotineServo.write(GUILLOTINE_CLOSED_ANGLE);
+        isGuillotineOpenState = false;
+        hasMovementCommand = false;
     }
 
     /**

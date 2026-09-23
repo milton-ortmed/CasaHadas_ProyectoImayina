@@ -1,6 +1,6 @@
 #include <Botones.hpp>
-#include "../../src/ServoManager.h"
-#include "../../src/Config.h"
+#include <ServoManager.h>
+#include <Config.h>
 
 const unsigned long guillotineOpenDuration = GUILLOTINE_OPEN_TIME_MS;
 
