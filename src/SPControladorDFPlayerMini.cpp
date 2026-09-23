@@ -1,3 +1,5 @@
+#if 0 // Desactivado: El audio se gestiona remotamente mediante LoRa y ya no se usa SPControladorDFPlayerMini en este proyecto.
+
 #include "SPControladorDFPlayerMini.hpp"
 
 ControladorDFRobotDFPlayerMini::ControladorDFRobotDFPlayerMini() {
@@ -66,3 +68,5 @@ void ControladorDFRobotDFPlayerMini::EstablecerVolumen(int nivel) {
     volumen = constrain(nivel, 0, 5);
     audio.volume(5 * volumen);
 }
+
+#endif // 0

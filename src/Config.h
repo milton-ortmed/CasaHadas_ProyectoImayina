@@ -90,19 +90,19 @@
 // ==========================================
 // PARÁMETROS DE ACTUADOR LINEAL
 // ==========================================
-#define LINEAR_ACTUATOR_DURATION_MS  9000 // Tiempo de movimiento del actuador lineal (7.0s)
+#define LINEAR_ACTUATOR_DURATION_MS  9000 // Tiempo de movimiento del actuador lineal (9.0s)
 
 // ==========================================
 // SECUENCIA ASÍNCRONA DE PURPURINA (TIEMPOS MS)
 // ==========================================
 #define GUILLOTINE_OPEN_TIME_MS     3000  // Tiempo de guillotina abierta (3.0s)
-#define BLOWER_START_DELAY_MS       500  // Espera después de cerrar la guillotina (0.5s)
+#define BLOWER_START_DELAY_MS       1000  // Espera después de cerrar la guillotina (1.0s)
 #define BLOWER_DURATION_MS         6000  // Tiempo de funcionamiento del blower (6.0s)
 
 // ==========================================
 // ILUMINACIÓN (WS2812B - FastLED)
 // ==========================================
-#define NUM_LEDS             30  // 30x Módulo LED WS2812B NeoPixel
+#define NUM_LEDS             40  // 40x Módulo LED WS2812B NeoPixel
 #define BRIGHTNESS_IDLE      60  // Brillo tenue para efecto reposo (0-255)
 #define BRIGHTNESS_SHOW     255  // Brillo máximo durante el espectáculo (0-255)
 #define AMBER_SEQUENCE_INTERVAL_MS 50 // Tiempo entre LEDs de la secuencia ámbar

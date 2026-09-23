@@ -4,29 +4,34 @@
  * @microcontroller ESP32-S3 Super Mini
  * 
  * Descripción:
- * Este programa controla la iluminación, expulsión asíncrona de purpurina
- * y reproducción de audio temática para las Casas de Hadas mecánicas.
+ * Este programa controla la iluminación, expulsión asíncrona de purpurina, movimiento del
+ * hada y reproducción de audio temática para las Casas de Hadas mecánicas.
  */
 
 #include <Arduino.h>
 #include <esp_task_wdt.h>
+#include <SPI.h>
+#include <LoRa.h>
 #include <Botones.hpp>
 
 #include <Config.h>
 #include <ILightingController.h>
-#include <src/FastLEDController.h>
-#include <src/ServoManager.h>
+#include <FastLEDController.h>
+#include <ServoManager.h>
 #include <BlowerControl.h>
-//#include <SPControladorDFPlayerMini.hpp>
+#include <ActuadorLinealControl.h>
 
 // ==========================================
 // ESTADOS DE LA MÁQUINA DE ESTADOS FINITA (FSM)
 // ==========================================
 enum SystemState {
     STATE_IDLE,          // Reposó: Iluminación tenue ("hada dentro"), espera de botón
+    STATE_PRESHOW,       // Luces y audio de presentación
+    STATE_FAIRY_OUT,     // Inicia movimiento del hada hacia hacia afuera de la casa con la luz de la puerta
     STATE_ACTIVATED,     // Activación: Inicia audio y prepara purpurina
     STATE_SHOW_RUNNING,  // Espectáculo: Mantiene show, ejecuta secuencia de purpurina (también podría monitorear pin BUSY)
-    STATE_CLOSING,       // Cierre: Limpia estados y regresa a IDLE
+    STATE_CLOSING,       // Cierre: Limpia estados
+    STATE_FAIRY_IN,      // Secuencia de movimiento del hada hacia adentro y regresa a IDLE
     STATE_SHOW_AUTO      // Espectáculo automático: Mantiene show secundario de luz y sonido
 };
 
@@ -49,15 +54,14 @@ PurpurinaStage purpurinaStage = PURPURINA_IDLE;
 ILightingController* lighting = new FastLEDController();
 ServoManager servos;
 BlowerControl blower;
-// ControladorDFRobotDFPlayerMini audioPlayer(PIN_DFPLAYER_RX, PIN_DFPLAYER_TX, PIN_DFPLAYER_BUSY);
 Controlador Ctrl;
+ActuadorLinealControl actuadorLineal;
+// controlador del LoRa
 
 uint32_t purpurinaStageStartTime = 0;
 uint32_t showRunningStartTime = 0;
 bool purpurinaCompleted = false;
 bool teclado = true;
-int showChoosen = 0;
-int trackChoosen = 0;
 const uint32_t INTERVALO_MS = 60UL * 60UL * 1000UL; // 1 hora
 uint32_t ultimoEvento = 0;
 uint8_t audioRandom; // pista para el show secundario
@@ -85,8 +89,8 @@ void setup() {
     lighting->begin();
     servos.begin();
     blower.begin();
-    // audioPlayer.Inicializar();
-    // audioPlayer.EstablecerVolumen(5);
+    actuadorLineal.begin();
+    // Inicializar componente lora y mandar volumen maximo
 
     Ctrl.RegistrarAccion(PIN_BUTTON, EventoBoton::Pulsar, activateShow);
     Ctrl.InicializarCtrl();
@@ -151,9 +155,7 @@ void activateShow() {
     }
 
     Serial.println("[EVENTO] Activación recibida -> Activando Show");
-    showChoosen = (showChoosen + 1) % 2;
-    trackChoosen = (trackChoosen % 3) + 1;
-    currentState = STATE_ACTIVATED;
+    currentState = STATE_PRESHOW;
 }
 
 // ==========================================
@@ -181,46 +183,62 @@ void updateFSM() {
 
         case STATE_IDLE:
             // Iluminación detenida
-            FastLED.clear(); // Limpiar los LEDs
+            FastLED.clear();
             FastLED.show();
             break;
 
-        case STATE_ACTIVATED:
-            Serial.println("[FSM] Estado: ACTIVATED -> Iniciando Audio y Mecanismo");
-
-            // 1. Abrir la guillotina e iniciar su temporización.
-            purpurinaStage = PURPURINA_OPEN_GUILLOTINE;
-            purpurinaStageStartTime = millis();
+        case STATE_PRESHOW:
+            Serial.println("[FSM] Estado: PRESHOW -> Iniciando Audio y luces de presentación");
             showRunningStartTime = millis();
-            purpurinaCompleted = false;
-            servos.openGuillotine();
-
-            // 2. Iniciar reproducción de audio y cambiar brillo de luces.
-            /* La pista de audio se reproducirá después del movimiento del servo
-            Serial.print("[AUDIO] Reproduciendo pista: ");
-            Serial.println(trackChoosen);
-            audioPlayer.ReproducirPista(trackChoosen);
-            */
             lighting->setBrightness(BRIGHTNESS_SHOW);
+            // Activar audio de presentación de 5 segundos (track 1)
+            currentState = STATE_FAIRY_OUT;
+            break;
 
-            currentState = STATE_SHOW_RUNNING;
+        case STATE_FAIRY_OUT:
+            // Patrón de iluminación de recorrido en color ámbar.
+            lighting->updateAmberSequenceEffect(4, NUM_LEDS - 5);
+            if (millis() - showRunningStartTime >= PRE_SHOW_RUNNING_DURATION) {
+                Serial.println("[FSM] Estado: FAIRY_OUT -> Iniciando luces de la puerta y sacando el hada");
+                FastLED.clear(); // Limpiar los LEDs
+                FastLED.show();
+                actuadorLineal.forward();
+                showRunningStartTime = millis();
+                currentState = STATE_ACTIVATED;
+            }
+            break;
+
+        case STATE_ACTIVATED:
+            // encender luces de la puerta en su correspondiente animación
+            lighting->updateSolidEffect(0, 3);
+            lighting->updateSolidEffect(NUM_LEDS - 4, NUM_LEDS - 1);
+            if (millis() - showRunningStartTime >= LINEAR_ACTUATOR_DURATION_MS - GUILLOTINE_OPEN_TIME_MS - BLOWER_START_DELAY_MS) {
+                Serial.println("[FSM] Estado: ACTIVATED -> Iniciando Audio y Mecanismo");
+
+                // Abrir la guillotina e iniciar su temporización.
+                purpurinaStage = PURPURINA_OPEN_GUILLOTINE;
+                purpurinaStageStartTime = millis();
+                showRunningStartTime = millis();
+                purpurinaCompleted = false;
+                servos.openGuillotine();
+                Serial.print("[AUDIO] Reproduciendo pista: ");
+                // pista por definir - track 2 (4 segundos)
+                // mandar comando en LoRa para reproducir pista
+
+                currentState = STATE_SHOW_RUNNING;
+            }
             break;
 
         case STATE_SHOW_RUNNING:
-            // 1. Alternar el patrón de iluminación en cada activación.
-            if (showChoosen == 1) {
-                lighting->updateShowEffect();
-            } else {
-                lighting->updateAmberSequenceEffect2();
-            }
+            // mantener luces de la puerta en su correspondiente animación
 
-            // 2. Procesar secuencia asíncrona de purpurina
+            // Procesar secuencia asíncrona de purpurina
             if (!purpurinaCompleted) {
                 processPurpurinaSequence();
             }
 
-            // 3. Finalizar el show después del tiempo configurado
-            if (millis() - showRunningStartTime >= SHOW_RUNNING_DURATION_MS) {
+            // Finalizar el show después del tiempo configurado
+            if (millis() - showRunningStartTime >= GUILLOTINE_OPEN_TIME_MS + BLOWER_START_DELAY_MS + BLOWER_DURATION_MS + 1) {
                 Serial.println("[FSM] Duración de SHOW_RUNNING completada");
                 currentState = STATE_CLOSING;
             }
@@ -228,23 +246,40 @@ void updateFSM() {
 
         case STATE_CLOSING:
             Serial.println("[FSM] Estado: CLOSING -> Limpiando");
-
             // Asegurar que la guillotina esté cerrada y el blower apagado
             servos.closeGuillotine();
             blower.turnOff();
+            FastLED.clear();
+            FastLED.show();
+            actuadorLineal.reverse();
+            // Mandar comando LoRa para reproducir pista
+            // Pista de audio track 4 (9 segundos) tal vez se use la version extendida de track 2
 
-            // Restablecer brillo de luces para reposo
-            lighting->setBrightness(BRIGHTNESS_IDLE);
-
-            // Regresar a reposo
-            currentState = STATE_IDLE;
-            Serial.println("[FSM] Retorno a STATE_IDLE completado");
+            showRunningStartTime = millis();
+            currentState = STATE_FAIRY_IN;
+            Serial.println("[FSM] Retorno del hada");
             break;
+
+        case STATE_FAIRY_IN:
+            // mantener luces de la puerta en su correspondiente animación
+            lighting->updateSolidEffect(0, 3);
+            lighting->updateSolidEffect(NUM_LEDS - 4, NUM_LEDS - 1);
+            if (millis() - showRunningStartTime >= LINEAR_ACTUATOR_DURATION_MS) {
+                // Restablecer brillo de luces para reposo
+                lighting->setBrightness(BRIGHTNESS_IDLE);
+                actuadorLineal.turnOff();
+
+                // Regresar a reposo
+                currentState = STATE_IDLE;
+                Serial.println("[FSM] Retorno a STATE_IDLE completado");
+            }
+            break;
+
         case STATE_SHOW_AUTO:
             if (luzRandom == 1) {
-                lighting->updateShowEffect();
+                lighting->updateShowEffect(0, NUM_LEDS - 1);
             } else {
-                lighting->updateAmberSequenceEffect2();
+                lighting->updateAmberSequenceEffect2(0, NUM_LEDS - 1);
             }
 
             if (millis() - showRunningStartTime >= AUTO_SHOW_RUNNING_DURATION_MS) {
@@ -270,9 +305,6 @@ void processPurpurinaSequence() {
             if (elapsedTime >= GUILLOTINE_OPEN_TIME_MS) {
                 Serial.println("[PURPURINA] Cerrando Guillotina");
                 servos.closeGuillotine();
-                Serial.print("[AUDIO] Reproduciendo pista: ");
-                Serial.println(trackChoosen);
-                //audioPlayer.ReproducirPista(trackChoosen);
                 purpurinaStage = PURPURINA_WAIT_BLOWER;
                 purpurinaStageStartTime = millis();
             }
@@ -283,13 +315,17 @@ void processPurpurinaSequence() {
             if (elapsedTime >= BLOWER_START_DELAY_MS) {
                 Serial.println("[PURPURINA] Encendiendo Blower");
                 blower.turnOn();
+                actuadorLineal.turnOff();
+                // Mandar comando LoRa para reproducir pista
+                // Pista de audio track 3 (6 segundos)
                 purpurinaStage = PURPURINA_BLOWER;
                 purpurinaStageStartTime = millis();
             }
             break;
 
         case PURPURINA_BLOWER:
-            // Paso 3: Mantener el blower encendido durante 2 segundos.
+            // Paso 3: Mantener el blower encendido durante 6 segundos.
+            lighting->updateShowEffect(4, NUM_LEDS - 5);
             if (elapsedTime >= BLOWER_DURATION_MS) {
                 Serial.println("[PURPURINA] Tiempo del Blower cumplido -> Apagando Blower");
                 blower.turnOff();
@@ -323,6 +359,6 @@ void activateShowAuto() {
     showRunningStartTime = millis();
     Serial.print("[AUDIO] Reproduciendo pista: ");
     Serial.println(audioRandom);
-    //audioPlayer.ReproducirPista(audioRandom);
+    // mandar comando en LoRa para Reproducir pista random;
     lighting->setBrightness(BRIGHTNESS_SHOW);
 }
