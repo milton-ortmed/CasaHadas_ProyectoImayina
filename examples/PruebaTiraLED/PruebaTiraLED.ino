@@ -64,15 +64,16 @@ void loop() {
         Serial.println("SHOW terminado: regresando a IDLE");
     }
 
+    lighting.updateSolidEffect(0, 3);
+    lighting.updateSolidEffect(NUM_LEDS - 4, NUM_LEDS - 1);
+
     if (currentMode == MODE_IDLE) {
-        //lighting.updateIdleEffect(); // Secuencia de respiración y titileo cálido
-        FastLED.clear(); // Limpiar los LEDs
-        FastLED.show();
+        lighting.updateIdleEffect(4, NUM_LEDS - 5); // Secuencia de respiración y titileo cálido
     } else {
         if (showChoosen == 1) {
-            lighting.updateShowEffect(); // Secuencia de destellos mágicos y pulso brillante
+            lighting.updateShowEffect(4, NUM_LEDS - 5); // Secuencia de destellos mágicos y pulso brillante
         } else {
-            lighting.updateAmberSequenceEffect2(); // Secuencia de colores del efecto SHOW
+            lighting.updateAmberSequenceEffect2(4, NUM_LEDS - 5); // Secuencia de colores del efecto SHOW
         }
     }
 }

@@ -19,26 +19,42 @@ public:
     virtual void begin() = 0;
 
     /**
+     * @brief Efecto de color sólido ambar.
+     * 
+     * @param startIndex Índice del primer LED del segmento a iluminar.
+     * @param endIndex Índice del último LED del segmento a iluminar.
+     */
+    virtual void updateSolidEffect(uint16_t startIndex, uint16_t endIndex) = 0;
+
+    /**
      * @brief Actualiza la animación de estado en reposo (IDLE).
      * Efecto tenue parpadeante/respiración ("Fairy Glow"). No bloqueante.
+     * @param startIndex Índice del primer LED del segmento.
+     * @param endIndex Índice del último LED del segmento.
      */
-    virtual void updateIdleEffect() = 0;
+    virtual void updateIdleEffect(uint16_t startIndex, uint16_t endIndex) = 0;
 
     /**
      * @brief Actualiza la animación durante el espectáculo (SHOW_RUNNING).
      * Efecto mágico brillante con destellos. No bloqueante.
+     * @param startIndex Índice del primer LED del segmento.
+     * @param endIndex Índice del último LED del segmento.
      */
-    virtual void updateShowEffect() = 0;
+    virtual void updateShowEffect(uint16_t startIndex, uint16_t endIndex) = 0;
 
     /**
      * @brief Actualiza la secuencia de recorrido ámbar durante el espectáculo.
+     * @param startIndex Índice del primer LED del segmento.
+     * @param endIndex Índice del último LED del segmento.
      */
-    virtual void updateAmberSequenceEffect() = 0;
+    virtual void updateAmberSequenceEffect(uint16_t startIndex, uint16_t endIndex) = 0;
 
     /**
      * @brief Actualiza una secuencia de recorrido con colores del efecto SHOW.
+     * @param startIndex Índice del primer LED del segmento.
+     * @param endIndex Índice del último LED del segmento.
      */
-    virtual void updateAmberSequenceEffect2() = 0;
+    virtual void updateAmberSequenceEffect2(uint16_t startIndex, uint16_t endIndex) = 0;
 
     /**
      * @brief Define el nivel de brillo general de los LEDs.

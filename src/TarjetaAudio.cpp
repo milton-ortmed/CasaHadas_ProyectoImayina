@@ -1,3 +1,5 @@
+#if 0 // Desactivado: El audio se gestiona remotamente mediante LoRa y ya no se usa localmente.
+
 #include "TarjetaAudio.hpp"
 
 /*
@@ -479,3 +481,5 @@ void ControladorOrtMedSoundBoard_v2::DesactivarControladorAuxiliar() {
 bool ControladorOrtMedSoundBoard_v2::ControladorAuxiliarActivado() {
   return btHabilitado;
 }
+
+#endif // 0
