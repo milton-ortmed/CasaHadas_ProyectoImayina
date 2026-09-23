@@ -5,13 +5,22 @@
 const int BUTTON_PIN = PIN_BUTTON;
 const int TIEMPO_ESPERA = 100;
 const unsigned long LINEAR_ACTUATOR_ACTIVATION_TIME_MS = LINEAR_ACTUATOR_DURATION_MS;
+unsigned long actuadorLinealActivatedAt = 0;
+bool dirr = 0;
 
 ActuadorLinealControl actuadorLineal;
 Controlador Ctrl;
 bool teclado = true;
 
 void activateActuadorLineal() {
-  actuadorLineal.forward();
+  if (dirr == 0) {
+    actuadorLineal.forward();
+    dirr = 1;
+  } else {
+    actuadorLineal.reverse();
+    dirr = 0;
+  }
+  actuadorLinealActivatedAt = millis();
   Serial.println("Estado: Botón PRESIONADO -> Actuador Lineal ENCENDIDO");
 }
 
