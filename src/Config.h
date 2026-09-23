@@ -29,7 +29,6 @@
 #define PIN_LINEAR_ACTUATOR_FWD   22 // GPIO 22: Salida digital -> Actuador lineal hacia adelante
 #define PIN_LINEAR_ACTUATOR_REV   21 // GPIO 21: Salida digital -> Actuador lineal hacia atrás
 #define PIN_LED_DATA               4 // GPIO 4: Datos DIN -> Tira WS2812B (FastLED)
-#define PIN_HADA_LED               5 // GPIO 5: LED del hada (ver nota de bootstrapping más abajo)
 #define PIN_BUTTON                32 // GPIO 32: Entrada digital -> Botón IP67
 
 // Nota importante: GPIO 4 y GPIO 5 son pines de arranque/strapping del ESP32.
@@ -63,6 +62,10 @@
 #define PIN_BUTTON              9 // GPIO 9: Entrada digital -> Botón IP67
 #define PIN_DFPLAYER_BUSY       8 // GPIO 8: Entrada digital -> BUSY DFPlayer
 
+#define PIN_VENTILATOR_MOSFET     -1
+#define PIN_LINEAR_ACTUATOR_FWD   -1
+#define PIN_LINEAR_ACTUATOR_REV   -1
+
 // El módulo LoRa no está instalado en esta configuración.
 #define PIN_LORA_SCK           -1
 #define PIN_LORA_MISO          -1
@@ -70,6 +73,7 @@
 #define PIN_LORA_CS            -1
 #define PIN_LORA_RST           -1
 #define PIN_LORA_DIO0          -1
+#define PIN_LORA_DIO1          -1
 
 #endif
 
@@ -86,14 +90,14 @@
 // ==========================================
 // PARÁMETROS DE ACTUADOR LINEAL
 // ==========================================
-#define LINEAR_ACTUATOR_DURATION_MS  5000 // Tiempo de movimiento del actuador lineal (5.0s)
+#define LINEAR_ACTUATOR_DURATION_MS  9000 // Tiempo de movimiento del actuador lineal (7.0s)
 
 // ==========================================
 // SECUENCIA ASÍNCRONA DE PURPURINA (TIEMPOS MS)
 // ==========================================
 #define GUILLOTINE_OPEN_TIME_MS     3000  // Tiempo de guillotina abierta (3.0s)
 #define BLOWER_START_DELAY_MS       500  // Espera después de cerrar la guillotina (0.5s)
-#define BLOWER_DURATION_MS         6000  // Tiempo de funcionamiento del blower (2.0s)
+#define BLOWER_DURATION_MS         6000  // Tiempo de funcionamiento del blower (6.0s)
 
 // ==========================================
 // ILUMINACIÓN (WS2812B - FastLED)
@@ -102,8 +106,14 @@
 #define BRIGHTNESS_IDLE      60  // Brillo tenue para efecto reposo (0-255)
 #define BRIGHTNESS_SHOW     255  // Brillo máximo durante el espectáculo (0-255)
 #define AMBER_SEQUENCE_INTERVAL_MS 50 // Tiempo entre LEDs de la secuencia ámbar
-#define SHOW_RUNNING_DURATION_MS 10000 // Duración del estado SHOW_RUNNING
-#define AUTO_SHOW_RUNNING_DURATION_MS 7000 // Duración del estado SHOW_AUTO
+
+// ==========================================
+// TIEMPOS DEL SHOW 
+// ==========================================
+#define PRE_SHOW_RUNNING_DURATION 5000 // Duración de la presentación del show principal
+#define SHOW_RUNNING_DURATION_MS 10000 // Duración del estado SHOW_RUNNING (10.0s)
+#define AUTO_SHOW_RUNNING_DURATION_MS 7000 // Duración del estado SHOW_AUTO (7.0s)
+
 // ==========================================
 // TIEMPOS DE DEBOUNCE Y SEGURIDAD
 // ==========================================
