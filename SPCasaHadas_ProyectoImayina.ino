@@ -21,6 +21,12 @@
 #include <BlowerControl.h>
 #include <ActuadorLinealControl.h>
 
+// LA ESTRUCTURA DEBE SER EXACTAMENTE IGUAL A LA DEL RECEPTOR
+struct __attribute__((packed)) ComandoLoRa {
+  uint8_t id_destino;
+  uint8_t comando;
+};
+
 // ==========================================
 // ESTADOS DE LA MÁQUINA DE ESTADOS FINITA (FSM)
 // ==========================================
@@ -56,7 +62,6 @@ ServoManager servos;
 BlowerControl blower;
 Controlador Ctrl;
 ActuadorLinealControl actuadorLineal;
-// controlador del LoRa
 
 uint32_t purpurinaStageStartTime = 0;
 uint32_t showRunningStartTime = 0;
@@ -67,6 +72,12 @@ uint32_t ultimoEvento = 0;
 uint8_t audioRandom; // pista para el show secundario
 uint8_t luzRandom = random8(0,1); // animación para el show secundario
 
+const uint8_t track1 = 10; // pista de efecto del preludio al show (5 segundos)
+const uint8_t track2 = 11; // pista del show cuando el hada sale (4 segundos)
+const uint8_t track3 = 12; // pista de efecto cuando se sopla la brillantina (6 segundos)
+const uint8_t track4 = 13; // pista del show cuando el hada regresa a la casa (9 segundos)
+const uint8_t ID_RECEPTOR_AUDIO = 5; // El ID de la placa conectada a la SoundBoard
+
 // ==========================================
 // PROTOTIPOS DE FUNCIONES
 // ==========================================
@@ -75,12 +86,14 @@ void activateShow();
 void updateFSM();
 void processPurpurinaSequence();
 void readKeyboard();
+void enviarComandoPista(uint8_t numeroPista);
 
 // ==========================================
 // SETUP PRINCIPAL
 // ==========================================
 void setup() {
     Serial.begin(115200);
+    delay(100);
     Serial.println("\n=============================================");
     Serial.println("  INICIALIZANDO CASAS DE HADAS - MUNDO IMAYINA");
     Serial.println("=============================================");
@@ -90,7 +103,16 @@ void setup() {
     servos.begin();
     blower.begin();
     actuadorLineal.begin();
-    // Inicializar componente lora y mandar volumen maximo
+
+    SPI.begin(PIN_LORA_SCK, PIN_LORA_MISO, PIN_LORA_MOSI, PIN_LORA_CS);
+    LoRa.setPins(PIN_LORA_CS, PIN_LORA_RST, PIN_LORA_DIO0);
+    Serial.println("Iniciando Transmisor LoRa");
+
+    // Inicia el módulo en la frecuencia de 915 MHz
+    if (!LoRa.begin(915E6)) {
+        Serial.println("¡Error al iniciar LoRa!");
+        while (1); // Si falla, se queda atrapado aquí
+    }
 
     Ctrl.RegistrarAccion(PIN_BUTTON, EventoBoton::Pulsar, activateShow);
     Ctrl.InicializarCtrl();
@@ -146,6 +168,27 @@ void setupWatchdog() {
 #endif
 }
 
+// FUNCIÓN PARA ENVIAR LA PISTA
+void enviarComandoPista(uint8_t numeroPista) {
+  ComandoLoRa paqueteEnvio;
+  
+  // Llenamos los datos
+  paqueteEnvio.id_destino = ID_RECEPTOR_AUDIO;
+  paqueteEnvio.comando = numeroPista; // Aquí viaja el 15 (o cualquier otra pista)
+
+  // Iniciamos la transmisión LoRa
+  LoRa.beginPacket();
+  
+  // Enviamos la estructura completa traduciéndola a bytes
+  LoRa.write((uint8_t*)&paqueteEnvio, sizeof(ComandoLoRa));
+  
+  // Cerramos y disparamos el paquete al aire
+  LoRa.endPacket();
+  
+  Serial.print("Mensaje LoRa enviado. Reproduciendo pista: ");
+  Serial.println(numeroPista);
+}
+
 // ==========================================
 // EVENTO DE BOTÓN
 // ==========================================
@@ -191,7 +234,7 @@ void updateFSM() {
             Serial.println("[FSM] Estado: PRESHOW -> Iniciando Audio y luces de presentación");
             showRunningStartTime = millis();
             lighting->setBrightness(BRIGHTNESS_SHOW);
-            // Activar audio de presentación de 5 segundos (track 1)
+            enviarComandoPista(track1);
             currentState = STATE_FAIRY_OUT;
             break;
 
@@ -222,8 +265,7 @@ void updateFSM() {
                 purpurinaCompleted = false;
                 servos.openGuillotine();
                 Serial.print("[AUDIO] Reproduciendo pista: ");
-                // pista por definir - track 2 (4 segundos)
-                // mandar comando en LoRa para reproducir pista
+                enviarComandoPista(track2);
 
                 currentState = STATE_SHOW_RUNNING;
             }
@@ -252,8 +294,7 @@ void updateFSM() {
             FastLED.clear();
             FastLED.show();
             actuadorLineal.reverse();
-            // Mandar comando LoRa para reproducir pista
-            // Pista de audio track 4 (9 segundos) tal vez se use la version extendida de track 2
+            enviarComandoPista(track4);
 
             showRunningStartTime = millis();
             currentState = STATE_FAIRY_IN;
@@ -277,9 +318,9 @@ void updateFSM() {
 
         case STATE_SHOW_AUTO:
             if (luzRandom == 1) {
-                lighting->updateShowEffect(0, NUM_LEDS - 1);
+                lighting->updateShowEffect(4, NUM_LEDS - 5);
             } else {
-                lighting->updateAmberSequenceEffect2(0, NUM_LEDS - 1);
+                lighting->updateAmberSequenceEffect2(4, NUM_LEDS - 5);
             }
 
             if (millis() - showRunningStartTime >= AUTO_SHOW_RUNNING_DURATION_MS) {
@@ -316,8 +357,7 @@ void processPurpurinaSequence() {
                 Serial.println("[PURPURINA] Encendiendo Blower");
                 blower.turnOn();
                 actuadorLineal.turnOff();
-                // Mandar comando LoRa para reproducir pista
-                // Pista de audio track 3 (6 segundos)
+                enviarComandoPista(track3);
                 purpurinaStage = PURPURINA_BLOWER;
                 purpurinaStageStartTime = millis();
             }
@@ -359,6 +399,6 @@ void activateShowAuto() {
     showRunningStartTime = millis();
     Serial.print("[AUDIO] Reproduciendo pista: ");
     Serial.println(audioRandom);
-    // mandar comando en LoRa para Reproducir pista random;
+    enviarComandoPista(audioRandom);
     lighting->setBrightness(BRIGHTNESS_SHOW);
 }
