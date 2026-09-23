@@ -4,6 +4,7 @@
 #include <LoRa.h>
 
 // Define los pines que vas a usar en tu ESP32-S3
+// Estos pines corresponden a la placa Balancin con LoRa
 #define LORA_SCK_PIN   14  // Reloj SPI
 #define LORA_MISO_PIN  32  // Master In Slave Out
 #define LORA_MOSI_PIN  23  // Master Out Slave In

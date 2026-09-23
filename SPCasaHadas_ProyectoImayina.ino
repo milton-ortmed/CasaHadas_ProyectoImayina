@@ -12,12 +12,12 @@
 #include <esp_task_wdt.h>
 #include <Botones.hpp>
 
-#include "src/Config.h"
-#include "src/ILightingController.h"
-#include "src/FastLEDController.h"
-#include "src/ServoManager.h"
-#include "src/BlowerControl.h"
-#include "src/SPControladorDFPlayerMini.hpp"
+#include <Config.h>
+#include <ILightingController.h>
+#include <src/FastLEDController.h>
+#include <src/ServoManager.h>
+#include <BlowerControl.h>
+//#include <SPControladorDFPlayerMini.hpp>
 
 // ==========================================
 // ESTADOS DE LA MÁQUINA DE ESTADOS FINITA (FSM)
@@ -49,7 +49,7 @@ PurpurinaStage purpurinaStage = PURPURINA_IDLE;
 ILightingController* lighting = new FastLEDController();
 ServoManager servos;
 BlowerControl blower;
-ControladorDFRobotDFPlayerMini audioPlayer(PIN_DFPLAYER_RX, PIN_DFPLAYER_TX, PIN_DFPLAYER_BUSY);
+// ControladorDFRobotDFPlayerMini audioPlayer(PIN_DFPLAYER_RX, PIN_DFPLAYER_TX, PIN_DFPLAYER_BUSY);
 Controlador Ctrl;
 
 uint32_t purpurinaStageStartTime = 0;
@@ -85,8 +85,8 @@ void setup() {
     lighting->begin();
     servos.begin();
     blower.begin();
-    audioPlayer.Inicializar();
-    audioPlayer.EstablecerVolumen(5);
+    // audioPlayer.Inicializar();
+    // audioPlayer.EstablecerVolumen(5);
 
     Ctrl.RegistrarAccion(PIN_BUTTON, EventoBoton::Pulsar, activateShow);
     Ctrl.InicializarCtrl();
@@ -272,7 +272,7 @@ void processPurpurinaSequence() {
                 servos.closeGuillotine();
                 Serial.print("[AUDIO] Reproduciendo pista: ");
                 Serial.println(trackChoosen);
-                audioPlayer.ReproducirPista(trackChoosen);
+                //audioPlayer.ReproducirPista(trackChoosen);
                 purpurinaStage = PURPURINA_WAIT_BLOWER;
                 purpurinaStageStartTime = millis();
             }
@@ -323,6 +323,6 @@ void activateShowAuto() {
     showRunningStartTime = millis();
     Serial.print("[AUDIO] Reproduciendo pista: ");
     Serial.println(audioRandom);
-    audioPlayer.ReproducirPista(audioRandom);
+    //audioPlayer.ReproducirPista(audioRandom);
     lighting->setBrightness(BRIGHTNESS_SHOW);
 }

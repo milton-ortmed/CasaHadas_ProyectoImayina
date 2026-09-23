@@ -1,6 +1,6 @@
 #include <Botones.hpp>
-#include "../../src/BlowerControl.h"
-#include "../../src/Config.h"
+#include <BlowerControl.h>
+#include <Config.h>
 
 // Definición de pines según la tabla del ESP32-S3 Super Mini
 const int BUTTON_PIN = PIN_BUTTON; // Botón (un pin a GPIO 7, el otro a GND)
