@@ -109,10 +109,16 @@ void setup() {
     Serial.println("Iniciando Transmisor LoRa");
 
     // Inicia el módulo en la frecuencia de 915 MHz
-    if (!LoRa.begin(915E6)) {
+    if (!LoRa.begin(LORA_FREQUENCY)) {
         Serial.println("¡Error al iniciar LoRa!");
         while (1); // Si falla, se queda atrapado aquí
     }
+
+    LoRa.setSignalBandwidth(LORA_BANDWIDTH);
+    LoRa.setSpreadingFactor(LORA_SPREADING_FACTOR);
+    LoRa.setCodingRate4(LORA_CODING_RATE);
+    LoRa.setSyncWord(LORA_SYNC_WORD);
+    Serial.println("LoRa configurado: 915MHz, SF9, BW125kHz, CR4/5");
 
     Ctrl.RegistrarAccion(PIN_BUTTON, EventoBoton::Pulsar, activateShow);
     Ctrl.InicializarCtrl();
@@ -212,8 +218,11 @@ void readKeyboard() {
     while (Serial.available() > 0) {
         char command = Serial.read();
         if (command == 'r' || command == 'R') {
-            Serial.println("[EVENTO] Tecla R recibida");
+            Serial.println("[EVENTO] Tecla R recibida -> Activando Show completo");
             activateShow();
+        } else if (command == 't' || command == 'T') {
+            Serial.println("[PRUEBA] Tecla T recibida -> Enviando comando de audio de prueba (Pista 10)");
+            enviarComandoPista(track1);
         }
     }
 }
