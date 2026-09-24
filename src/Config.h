@@ -120,4 +120,13 @@
 #define DEBOUNCE_DELAY_MS        100  // Filtro de antirrebote para el botón (100ms)
 #define WDT_TIMEOUT_SECONDS       5  // Watchdog Timer de seguridad (5 segundos)
 
+// ==========================================
+// PARÁMETROS DE RADIO LORA
+// ==========================================
+#define LORA_FREQUENCY            915E6   // Frecuencia en Hz (915 MHz)
+#define LORA_BANDWIDTH            125E3   // Ancho de banda (125 kHz)
+#define LORA_SPREADING_FACTOR     9       // Factor de dispersión (SF 9)
+#define LORA_CODING_RATE          5       // Tasa de codificación (4/5)
+#define LORA_SYNC_WORD            0x12    // Palabra de sincronización por defecto
+
 #endif // CONFIG_H

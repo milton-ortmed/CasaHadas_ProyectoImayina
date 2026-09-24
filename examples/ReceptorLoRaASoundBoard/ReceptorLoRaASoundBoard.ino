@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <SPI.h>
 #include <LoRa.h>
+#include <Config.h>
 #include <SPGestorComandosSeriales.hpp>
 
 // --- PINES LORA (ESP32-S3 Super Mini) ---
@@ -44,6 +45,7 @@ static const uint8_t VOLUMEN_MAXIMO = 20;
 
 // --- VARIABLES PARA INTERRUPCIONES Y COOLDOWN ---
 volatile bool paqueteRecibido = false;
+volatile int tamanoPaqueteRecibido = 0;
 unsigned long tiempoUltimoComando = 0;
 const unsigned long COOLDOWN_RECEPCION = 100;
 
@@ -51,6 +53,7 @@ const unsigned long COOLDOWN_RECEPCION = 100;
 // IRAM_ATTR asegura que la función se cargue en la RAM rápida para evitar cuelgues durante la interrupción
 void IRAM_ATTR onReceiveLoRa(int packetSize) {
   if (packetSize > 0) {
+    tamanoPaqueteRecibido = packetSize;
     paqueteRecibido = true;
   }
 }
@@ -103,13 +106,15 @@ void setup() {
   enviarVolumen(VOLUMEN_MAXIMO);
 
   // 3. Inicializar módulo LoRa
-  if (!LoRa.begin(915E6)) {
+  if (!LoRa.begin(LORA_FREQUENCY)) {
     Serial.println("Error Critico: Fallo al iniciar la radio LoRa");
     while (true);
   }
 
-  LoRa.setSignalBandwidth(125E3);
-  LoRa.setSpreadingFactor(9);
+  LoRa.setSignalBandwidth(LORA_BANDWIDTH);
+  LoRa.setSpreadingFactor(LORA_SPREADING_FACTOR);
+  LoRa.setCodingRate4(LORA_CODING_RATE);
+  LoRa.setSyncWord(LORA_SYNC_WORD);
 
   // 4. Configurar la interrupción de recepción
   LoRa.onReceive(onReceiveLoRa);
@@ -118,6 +123,9 @@ void setup() {
   LoRa.receive();
 
   Serial.println("Receptor por interrupciones listo (ESP32-S3). Volumen al maximo.");
+  Serial.print("LoRa listo a ");
+  Serial.print(LORA_FREQUENCY / 1E6);
+  Serial.println(" MHz. Esperando paquetes...");
 }
 
 void loop() {
@@ -127,14 +135,25 @@ void loop() {
   // Procesar solo si la interrupción levantó la bandera
   if (paqueteRecibido) {
     paqueteRecibido = false; // Bajar bandera
-    
-    // Leer el paquete que detonó la interrupción
-    int packetSize = LoRa.parsePacket();
-    
+    int packetSize = tamanoPaqueteRecibido;
+
+    Serial.print("[LORA RX] Interrupcion detectada - Tamano: ");
+    Serial.print(packetSize);
+    Serial.print(" bytes | RSSI: ");
+    Serial.print(LoRa.packetRssi());
+    Serial.print(" dBm | SNR: ");
+    Serial.println(LoRa.packetSnr());
+
+    // Validar el tamaño esperado de la estructura
     if (packetSize == sizeof(ComandoLoRa)) {
       uint8_t buffer[sizeof(ComandoLoRa)];
       LoRa.readBytes(buffer, sizeof(ComandoLoRa));
       memcpy(&datosRecibidos, buffer, sizeof(ComandoLoRa));
+
+      Serial.print("[LORA RX] ID Destino: ");
+      Serial.print(datosRecibidos.id_destino);
+      Serial.print(" | Comando/Pista: ");
+      Serial.println(datosRecibidos.comando);
 
       if (datosRecibidos.id_destino == MI_ID_DISPOSITIVO) {
         if (millis() - tiempoUltimoComando > COOLDOWN_RECEPCION) {
@@ -143,19 +162,31 @@ void loop() {
           // El receptor confía en que la placa emisora mandará directamente el ID de la pista (1, 2, 3...)
           // o mandará un 0 para detener.
           if (datosRecibidos.comando == 0) {
+            Serial.println("[AUDIO] Comando STOP recibido");
             enviarStop();
           } else {
+            Serial.print("[AUDIO] Reproduciendo pista por comando LoRa: ");
+            Serial.println(datosRecibidos.comando);
             // Detenemos el audio actual antes de mandar el nuevo por seguridad
             enviarStop();
             reproducirPista(datosRecibidos.comando, CANAL_AUDIO, 0, true);
           }
         } else {
-          Serial.println("Rafaga bloqueada por cooldown.");
+          Serial.println("[LORA RX] Rafaga bloqueada por cooldown.");
         }
+      } else {
+        Serial.print("[LORA RX] Paquete descartado (Destino ");
+        Serial.print(datosRecibidos.id_destino);
+        Serial.print(" != ");
+        Serial.print(MI_ID_DISPOSITIVO);
+        Serial.println(")");
       }
+    } else {
+      Serial.print("[LORA RX] Advertencia: Tamano de paquete inesperado: ");
+      Serial.println(packetSize);
     }
     
-    // Limpiar el buffer residual de LoRa y regresar a modo escucha
+    // Limpiar cualquier byte residual del FIFO y rearmar la escucha continua
     while (LoRa.available()) {
       LoRa.read();
     }
