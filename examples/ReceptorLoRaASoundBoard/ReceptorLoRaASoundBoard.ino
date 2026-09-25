@@ -1,7 +1,6 @@
 #include <Arduino.h>
 #include <SPI.h>
 #include <LoRa.h>
-#include <Config.h>
 #include <SPGestorComandosSeriales.hpp>
 
 // --- PINES LORA (ESP32-S3 Super Mini) ---
@@ -12,6 +11,13 @@
 #define RESET_PIN 10
 #define DIO0_PIN  9 // Fundamental para interrupciones RX
 // DIO1 (GPIO 8) no es estrictamente necesario para la recepción básica con la librería de Sandeep Mistry.
+
+// --- PARÁMETROS DE RADIO LORA (Deben coincidir exactamente con el emisor) ---
+#define LORA_FREQUENCY            915E6   // Frecuencia en Hz (915 MHz)
+#define LORA_BANDWIDTH            125E3   // Ancho de banda (125 kHz)
+#define LORA_SPREADING_FACTOR     9       // Factor de dispersión (SF 9)
+#define LORA_CODING_RATE          5       // Tasa de codificación (4/5)
+#define LORA_SYNC_WORD            0x12    // Palabra de sincronización por defecto
 
 // --- ESTRUCTURA DE LORA ---
 struct __attribute__((packed)) ComandoLoRa {
@@ -74,7 +80,7 @@ void enviarStop() {
   Serial.println("Detener audio general");
 }
 
-void reproducirPista(uint32_t pista, uint8_t canal = 0, uint8_t voz = 0, bool repetir = true) {
+void reproducirPista(uint32_t pista, uint8_t canal = 0, uint8_t voz = 0, bool repetir = false) {
   if (pista == 0) return;
   
   uint8_t payload[6];
@@ -169,7 +175,7 @@ void loop() {
             Serial.println(datosRecibidos.comando);
             // Detenemos el audio actual antes de mandar el nuevo por seguridad
             enviarStop();
-            reproducirPista(datosRecibidos.comando, CANAL_AUDIO, 0, true);
+            reproducirPista(datosRecibidos.comando, CANAL_AUDIO, 0, false);
           }
         } else {
           Serial.println("[LORA RX] Rafaga bloqueada por cooldown.");

@@ -77,6 +77,9 @@ const uint8_t track2 = 11; // pista del show cuando el hada sale (4 segundos)
 const uint8_t track3 = 12; // pista de efecto cuando se sopla la brillantina (6 segundos)
 const uint8_t track4 = 13; // pista del show cuando el hada regresa a la casa (9 segundos)
 const uint8_t ID_RECEPTOR_AUDIO = 5; // El ID de la placa conectada a la SoundBoard
+uint8_t numPista = 0;
+uint8_t numPaqueteLora = 0;
+uint8_t startSendPackage = 0;
 
 // ==========================================
 // PROTOTIPOS DE FUNCIONES
@@ -87,6 +90,7 @@ void updateFSM();
 void processPurpurinaSequence();
 void readKeyboard();
 void enviarComandoPista(uint8_t numeroPista);
+void enviarReproduccionAudio();
 
 // ==========================================
 // SETUP PRINCIPAL
@@ -152,6 +156,9 @@ void loop() {
     // 3. Despachador de la Máquina de Estados Finita (FSM)
     updateFSM();
 
+    // 4. Revisar si hay comandos de reproducción de audio por enviar
+    enviarReproduccionAudio();
+
     // Cede el procesador para que las tareas idle del ESP32 se ejecuten.
     delay(1);
 }
@@ -174,6 +181,10 @@ void setupWatchdog() {
 #endif
 }
 
+// ---------------------------------
+// ENVIO DE COMANDOS LORA EN RAFAGA
+// ---------------------------------
+
 // FUNCIÓN PARA ENVIAR LA PISTA
 void enviarComandoPista(uint8_t numeroPista) {
   ComandoLoRa paqueteEnvio;
@@ -190,9 +201,29 @@ void enviarComandoPista(uint8_t numeroPista) {
   
   // Cerramos y disparamos el paquete al aire
   LoRa.endPacket();
-  
-  Serial.print("Mensaje LoRa enviado. Reproduciendo pista: ");
-  Serial.println(numeroPista);
+}
+
+void banderaReproduccionPista(uint8_t numeroPista){
+    numPista = numeroPista;
+    numPaqueteLora = 1;
+    startSendPackage = millis();
+}
+
+void enviarReproduccionAudio(){
+    if (numPista == 0) return;
+
+    if (numPaqueteLora <= 3 && millis() - startSendPackage > 20){
+        enviarComandoPista(numPista);
+        startSendPackage = millis();
+        numPaqueteLora ++;
+    }
+
+    if (numPaqueteLora > 3) {
+        Serial.print("Mensaje LoRa enviado. Reproduciendo pista: ");
+        Serial.println(numPista);
+        numPista = 0;
+    }
+
 }
 
 // ==========================================
@@ -222,7 +253,7 @@ void readKeyboard() {
             activateShow();
         } else if (command == 't' || command == 'T') {
             Serial.println("[PRUEBA] Tecla T recibida -> Enviando comando de audio de prueba (Pista 10)");
-            enviarComandoPista(track1);
+            banderaReproduccionPista(track1);
         }
     }
 }
@@ -243,7 +274,7 @@ void updateFSM() {
             Serial.println("[FSM] Estado: PRESHOW -> Iniciando Audio y luces de presentación");
             showRunningStartTime = millis();
             lighting->setBrightness(BRIGHTNESS_SHOW);
-            enviarComandoPista(track1);
+            banderaReproduccionPista(track1);
             currentState = STATE_FAIRY_OUT;
             break;
 
@@ -254,6 +285,9 @@ void updateFSM() {
                 Serial.println("[FSM] Estado: FAIRY_OUT -> Iniciando luces de la puerta y sacando el hada");
                 FastLED.clear(); // Limpiar los LEDs
                 FastLED.show();
+                banderaReproduccionPista(track2);
+                Serial.print("[AUDIO] Reproduciendo pista: ");
+                Serial.print(track2);
                 actuadorLineal.forward();
                 showRunningStartTime = millis();
                 currentState = STATE_ACTIVATED;
@@ -273,8 +307,6 @@ void updateFSM() {
                 showRunningStartTime = millis();
                 purpurinaCompleted = false;
                 servos.openGuillotine();
-                Serial.print("[AUDIO] Reproduciendo pista: ");
-                enviarComandoPista(track2);
 
                 currentState = STATE_SHOW_RUNNING;
             }
@@ -289,7 +321,7 @@ void updateFSM() {
             }
 
             // Finalizar el show después del tiempo configurado
-            if (millis() - showRunningStartTime >= GUILLOTINE_OPEN_TIME_MS + BLOWER_START_DELAY_MS + BLOWER_DURATION_MS + 1) {
+            if (millis() - showRunningStartTime >= SHOW_RUNNING_DURATION_MS) {
                 Serial.println("[FSM] Duración de SHOW_RUNNING completada");
                 currentState = STATE_CLOSING;
             }
@@ -300,10 +332,9 @@ void updateFSM() {
             // Asegurar que la guillotina esté cerrada y el blower apagado
             servos.closeGuillotine();
             blower.turnOff();
-            FastLED.clear();
-            FastLED.show();
+            lighting->clearLED(4, NUM_LEDS - 5);
             actuadorLineal.reverse();
-            enviarComandoPista(track4);
+            banderaReproduccionPista(track4);
 
             showRunningStartTime = millis();
             currentState = STATE_FAIRY_IN;
@@ -366,7 +397,7 @@ void processPurpurinaSequence() {
                 Serial.println("[PURPURINA] Encendiendo Blower");
                 blower.turnOn();
                 actuadorLineal.turnOff();
-                enviarComandoPista(track3);
+                banderaReproduccionPista(track3);
                 purpurinaStage = PURPURINA_BLOWER;
                 purpurinaStageStartTime = millis();
             }
@@ -408,6 +439,6 @@ void activateShowAuto() {
     showRunningStartTime = millis();
     Serial.print("[AUDIO] Reproduciendo pista: ");
     Serial.println(audioRandom);
-    enviarComandoPista(audioRandom);
+    banderaReproduccionPista(audioRandom);
     lighting->setBrightness(BRIGHTNESS_SHOW);
 }

@@ -19,6 +19,14 @@ public:
     virtual void begin() = 0;
 
     /**
+     * @brief Poner LEDs en blanco.
+     * 
+     * @param startIndex Índice del primer LED del segmento a limpiar.
+     * @param endIndex Índice del último LED del segmento a limpiar.
+     */
+    virtual void clearLED(uint16_t startIndex, uint16_t endIndex) = 0;
+
+    /**
      * @brief Efecto de color sólido ambar.
      * 
      * @param startIndex Índice del primer LED del segmento a iluminar.
