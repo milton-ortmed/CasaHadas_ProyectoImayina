@@ -32,6 +32,22 @@ public:
         FastLED.setBrightness(brightness);
     }
 
+    void clearLED(uint16_t startIndex, uint16_t endIndex){
+        if (startIndex >= NUM_LEDS) return;
+        if (endIndex >= NUM_LEDS) endIndex = NUM_LEDS - 1;
+        if (startIndex > endIndex) {
+            uint16_t temp = startIndex;
+            startIndex = endIndex;
+            endIndex = temp;
+        }
+
+        for (uint16_t i = startIndex; i <= endIndex; i++) {            
+            leds[i] = CRGB::Black;
+        }
+        
+        FastLED.show();
+    }
+
     /**
      * @brief Efecto de color sólido ambar.
      * 

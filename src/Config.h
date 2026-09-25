@@ -97,7 +97,7 @@
 // ==========================================
 #define GUILLOTINE_OPEN_TIME_MS     3000  // Tiempo de guillotina abierta (3.0s)
 #define BLOWER_START_DELAY_MS       1000  // Espera después de cerrar la guillotina (1.0s)
-#define BLOWER_DURATION_MS         6000  // Tiempo de funcionamiento del blower (6.0s)
+#define BLOWER_DURATION_MS         5500  // Tiempo de funcionamiento del blower (5.5s)
 
 // ==========================================
 // ILUMINACIÓN (WS2812B - FastLED)
